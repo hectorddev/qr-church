@@ -3,250 +3,177 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Sistema de colores */
+  --primary-color: #1a365d;
+  --secondary-color: #2c5282;
+  --accent-color: #4299e1;
+  --background-color: #f7fafc;
+  --text-color: #2d3748;
+  
+  /* Sistema de espaciado */
+  --space-unit: 4px;
+  --space-1: calc(var(--space-unit) * 1);
+  --space-2: calc(var(--space-unit) * 2);
+  --space-3: calc(var(--space-unit) * 3);
+  --space-4: calc(var(--space-unit) * 4);
+  --space-5: calc(var(--space-unit) * 5);
+  --space-6: calc(var(--space-unit) * 6);
+  
+  /* Sistema de tipografía */
+  --font-size-base: clamp(1rem, 1vw + 0.75rem, 1.125rem);
+  --line-height-base: 1.5;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  
+  /* Sistema de bordes */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+  
+  /* Sistema de sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-html, body {
-  height: 100%;
+/* Reset y configuración base */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  max-height: 100vh;
+}
+
+html {
+  height: 100%;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      135deg,
-      #8a2387,
-      #e94057,
-      #f27121
-    );
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  box-sizing: border-box;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-@keyframes gradientBG {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.container-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100%;
-  width: 100%;
-  padding: 1rem;
-  box-sizing: border-box;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.verse-container {
-  max-width: 800px;
-  width: 90%;
-  text-align: center;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  animation: floatIn 1s ease-out forwards;
-  box-sizing: border-box;
+/* Contenedor del calendario */
+.calendar-container {
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  background-color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Encabezado del calendario */
+.calendar-header {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 }
 
-.space-y-8 {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  align-items: center;
-  justify-content: center;
+/* Días de la semana */
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: var(--secondary-color);
+  color: white;
+  padding: var(--space-2);
   text-align: center;
-}
-
-.verse-text-1, .verse-text-2, .verse-reference {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-
-@keyframes floatIn {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.verse-text-1 {
-  opacity: 0;
-  animation: slideInFromLeft 1.2s ease-out forwards 0.3s;
-  margin: 0;
-}
-
-.verse-text-2 {
-  opacity: 0;
-  animation: slideInFromRight 1.2s ease-out forwards 1.4s;
-  margin: 0;
-}
-
-.verse-reference {
-  opacity: 0;
-  animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 2.2s;
-  color: #8a2387;
   font-weight: 600;
-  letter-spacing: 1px;
-  margin: 0;
 }
 
-.heart {
+/* Celdas del calendario */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background-color: #e2e8f0;
+  border: 1px solid #e2e8f0;
+}
+
+.calendar-cell {
+  background-color: white;
+  min-height: 100px;
+  padding: var(--space-2);
   position: relative;
-  opacity: 0;
-  animation: 
-    scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.8s,
-    heartbeat 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite 1.6s,
-    float 3s ease-in-out infinite 1.6s;
-  filter: drop-shadow(0 0 15px rgba(229, 62, 62, 0.5));
-  margin: 0;
 }
 
-/* Mejores animaciones */
-@keyframes slideInFromLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-50px) rotateY(-10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) rotateY(0deg);
-  }
+.calendar-cell:hover {
+  background-color: #f8fafc;
 }
 
-@keyframes slideInFromRight {
-  0% {
-    opacity: 0;
-    transform: translateX(50px) rotateY(10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) rotateY(0deg);
-  }
+/* Eventos en el calendario */
+.calendar-event {
+  margin: var(--space-1) 0;
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-@keyframes scaleIn {
-  0% {
-    opacity: 0;
-    transform: scale(0) rotate(-20deg);
-  }
-  80% {
-    transform: scale(1.2) rotate(15deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
+.calendar-event:hover {
+  transform: scale(1.02);
 }
 
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
-  }
-  25% {
-    transform: scale(1.1);
-  }
-  40% {
-    transform: scale(1);
-  }
-  60% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+/* Controles de navegación */
+.calendar-nav {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
 }
 
-@keyframes float {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0);
-  }
+.calendar-nav button {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@keyframes popIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  60% {
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.calendar-nav button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Media queries para asegurar responsividad */
+/* Media Queries */
 @media (max-width: 768px) {
-  body {
-    position: static;
-    overflow-y: auto;
-    height: auto;
+  .calendar-cell {
+    min-height: 80px;
+    font-size: var(--font-size-sm);
   }
   
-  .verse-container {
-    padding: 1.5rem;
-  }
-  
-  .space-y-8 {
-    gap: 1rem;
+  .calendar-event {
+    font-size: 0.75rem;
+    padding: var(--space-1);
   }
 }
 
-@media (max-height: 700px) {
-  body {
-    position: static;
-    overflow-y: auto;
-    height: auto;
+@media (max-width: 640px) {
+  .calendar-cell {
+    min-height: 60px;
   }
   
-  .verse-container {
-    padding: 1rem;
+  .calendar-weekdays {
+    font-size: var(--font-size-sm);
   }
-  
-  .space-y-8 {
-    gap: 0.75rem;
-  }
+}
+
+/* Utilidades de accesibilidad */
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
 }
