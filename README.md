@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Calendario de Actividades de la Iglesia
 
-## Getting Started
+Este proyecto es una aplicación web que muestra un versículo bíblico y un calendario de actividades para la iglesia.
 
-First, run the development server:
+## Requisitos
+
+- Node.js >= 14.x
+- NPM >= 6.x
+
+## Instalación
+
+1. Clona el repositorio:
+
+```bash
+git clone <url-del-repositorio>
+cd qr_church
+```
+
+2. Instala las dependencias:
+
+```bash
+npm install
+npm install mongoose
+```
+
+## Configuración
+
+El proyecto utiliza MongoDB Atlas como base de datos. La cadena de conexión ya está configurada en el archivo `src/lib/db.js`.
+
+## Ejecución
+
+Para ejecutar el proyecto en modo desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+La aplicación estará disponible en `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Funcionalidades
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Página principal:** Muestra un versículo bíblico (Juan 3:16) con animaciones.
+- **Calendario:** Permite ver, agregar, editar y eliminar actividades en un calendario visual.
 
-## Learn More
+## Estructura de la base de datos
 
-To learn more about Next.js, take a look at the following resources:
+El proyecto utiliza MongoDB para almacenar los eventos del calendario con la siguiente estructura:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```javascript
+{
+  title: String,      // Título del evento
+  description: String, // Descripción (opcional)
+  date: String,       // Fecha en formato YYYY-MM-DD
+  createdAt: Date     // Fecha de creación del evento
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tecnologías utilizadas
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js
+- React
+- MongoDB & Mongoose
+- Tailwind CSS
