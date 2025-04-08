@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +21,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <Script
+          src="https://cdn.tailwindcss.com"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
