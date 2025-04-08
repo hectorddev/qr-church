@@ -1,7 +1,10 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ListView from "./ListView";
+import "./listView.css";
 
 export default function Calendar() {
   // Estado para los eventos
@@ -32,6 +35,7 @@ export default function Calendar() {
   const [selectedWeek, setSelectedWeek] = useState(
     Math.ceil(new Date().getDate() / 7)
   );
+  const [viewMode, setViewMode] = useState("calendar"); // "calendar" o "list"
 
   // Detectar si es un dispositivo móvil
   useEffect(() => {
@@ -376,44 +380,6 @@ export default function Calendar() {
     return days;
   };
 
-  // Selector de vistas (mes, semana, día)
-  const renderViewSelector = () => {
-    return (
-      <div className="flex border rounded-lg overflow-hidden mb-4 max-w-xs mx-auto md:mx-0">
-        <button
-          onClick={() => setView("month")}
-          className={`flex-1 py-2 px-3 text-sm ${
-            view === "month"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100"
-          }`}
-        >
-          Mes
-        </button>
-        <button
-          onClick={() => setView("week")}
-          className={`flex-1 py-2 px-3 text-sm ${
-            view === "week"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100"
-          }`}
-        >
-          Semana
-        </button>
-        <button
-          onClick={() => setView("day")}
-          className={`flex-1 py-2 px-3 text-sm ${
-            view === "day"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100"
-          }`}
-        >
-          Día
-        </button>
-      </div>
-    );
-  };
-
   // Renderizar vista de semana
   const renderWeekView = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
@@ -700,23 +666,47 @@ export default function Calendar() {
           </button>
         </div>
 
-        {/* Selector de vista */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
-          {renderViewSelector()}
-
-          <div className="flex justify-between items-center w-full md:w-auto">
+        {/* Controles de navegación */}
+        <div className="flex justify-between items-center mb-4 px-4">
+          <div className="flex space-x-2">
+            <button
+              className={`px-4 py-2 rounded-lg ${
+                view === "month" ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
+              onClick={() => setView("month")}
+            >
+              Mes
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg ${
+                view === "week" ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
+              onClick={() => setView("week")}
+            >
+              Semana
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg ${
+                view === "day" ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
+              onClick={() => setView("day")}
+            >
+              Día
+            </button>
+          </div>
+          <div className="flex items-center space-x-4">
             <button
               onClick={prevMonth}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full p-2 w-8 h-8 flex items-center justify-center"
+              className="text-gray-600 hover:text-gray-800"
             >
               &lt;
             </button>
-            <h2 className="text-xl font-semibold px-4">
+            <h2 className="text-xl font-semibold">
               {monthNames[currentMonth]} {currentYear}
             </h2>
             <button
               onClick={nextMonth}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full p-2 w-8 h-8 flex items-center justify-center"
+              className="text-gray-600 hover:text-gray-800"
             >
               &gt;
             </button>
@@ -733,29 +723,106 @@ export default function Calendar() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            {view === "month" && (
-              <>
-                {/* Días de la semana - adaptables a móvil */}
-                <div className="grid grid-cols-7 gap-0">
-                  {weekdayNames.map((day, index) => (
-                    <div
-                      key={index}
-                      className="text-center font-medium py-2 border-b border-r last:border-r-0 text-gray-600"
-                    >
-                      <span className="hidden md:inline">{day}</span>
-                      <span className="md:hidden">{day.charAt(0)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-0">{renderCalendar()}</div>
-              </>
+            {viewMode === "calendar" ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key="calendar"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="bg-white rounded-lg shadow overflow-hidden"
+                >
+                  {view === "month" && (
+                    <>
+                      {/* Días de la semana */}
+                      <div className="grid grid-cols-7 gap-0">
+                        {weekdayNames.map((day, index) => (
+                          <div
+                            key={index}
+                            className="text-center font-medium py-2 border-b border-r last:border-r-0 text-gray-600"
+                          >
+                            <span className="hidden md:inline">{day}</span>
+                            <span className="md:hidden">{day.charAt(0)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Grid del calendario */}
+                      <div className="grid grid-cols-7 gap-0">
+                        {renderCalendar()}
+                      </div>
+                    </>
+                  )}
+
+                  {view === "week" && renderWeekView()}
+                  {view === "day" && renderDayView()}
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <motion.div
+                key="list"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <ListView events={events} />
+              </motion.div>
             )}
-
-            {view === "week" && renderWeekView()}
-
-            {view === "day" && renderDayView()}
           </div>
         )}
+
+        {/* Botón de cambio de vista */}
+        <motion.button
+          className="view-toggle"
+          onClick={() =>
+            setViewMode(viewMode === "calendar" ? "list" : "calendar")
+          }
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {viewMode === "calendar" ? (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              Ver Lista
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Ver Calendario
+            </>
+          )}
+        </motion.button>
 
         {/* Información de eventos del día actual - solo visible en móvil */}
         {isMobile && (
