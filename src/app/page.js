@@ -1,36 +1,52 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="container-wrapper">
-      <div className="verse-container">
-        <div className="space-y-8">
-          <p className="verse-text-1 text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 leading-tight">
-            &ldquo;Porque de tal manera amó Dios al mundo...&rdquo;
-          </p>
-
-          <div className="heart text-6xl md:text-7xl lg:text-8xl flex justify-center">
-            ❤️
+    <div className="contact-page-wrapper">
+      <div className="contact-container">
+        <div className="church-info">
+          <div className="church-logo">
+            <Image
+              src="/logo.png"
+              alt="Logo I.E.L. El Pan de Vida"
+              width={200}
+              height={200}
+              className="logo-main"
+              priority
+            />
           </div>
 
-          <p className="verse-text-2 text-xl md:text-2xl lg:text-3xl text-gray-700 leading-relaxed">
-            &ldquo;que dio a su Hijo unigénito, para que todo aquel que cree en
-            Él, no se pierda, sino que tenga vida eterna.&rdquo;
-          </p>
+          <h1 className="church-name">I.E.L. &ldquo;El Pan de Vida&rdquo;</h1>
 
-          <p className="verse-reference text-lg md:text-xl lg:text-2xl font-semibold">
-            Juan 3:16
-          </p>
+          <div className="contact-info">
+            <div className="info-card location-card">
+              <div className="card-icon">📍</div>
+              <div className="card-content">
+                <h2>Ubicación</h2>
+                <p className="main-text">El Abejal de Palmira</p>
+                <p className="sub-text">
+                  Vereda 6, 100mt más arriba de la Escuela
+                </p>
+              </div>
+            </div>
 
-          <div className="mt-6">
-            <Link
-              href="/calendar"
-              className="bg-white bg-opacity-50 hover:bg-opacity-75 text-purple-800 py-2 px-4 rounded-full shadow-md transition-all duration-300 hover:shadow-lg"
-            >
-              Ver Calendario de Actividades
-            </Link>
+            <div className="info-card contact-card">
+              <div className="card-icon">📞</div>
+              <div className="card-content">
+                <h2>Contáctanos</h2>
+                <a
+                  href="https://wa.me/584247218061"
+                  className="contact-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  0424-7218061
+                  <span className="whatsapp-text">Envíanos un mensaje</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

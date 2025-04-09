@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Calendario de Actividades - Iglesia",
-  description: "Calendario de actividades y eventos de la iglesia",
+  title: "Una Verdad para tu Vida",
+  description: "Una Verdad para tu Vida",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   themeColor: "#1a365d",
 };

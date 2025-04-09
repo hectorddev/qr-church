@@ -1,0 +1,293 @@
+/* Estilos para la página de Semana Santa */
+.comic-panel {
+  border: 2px solid #4a5568; /* Borde gris oscuro */
+  border-radius: 0.5rem; /* Esquinas redondeadas */
+  padding: 1rem; /* Espaciado interno */
+  background-color: #f7fafc; /* Fondo ligeramente gris */
+  margin-bottom: 1.5rem; /* Espacio entre viñetas */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Sombra suave */
+  overflow: hidden; /* Asegura que la imagen no se salga del borde redondeado */
+}
+
+.comic-image {
+  border-radius: 0.375rem; /* Esquinas redondeadas para la imagen */
+  margin-bottom: 0.75rem; /* Espacio debajo de la imagen */
+  width: 100%; /* Asegura que la imagen ocupe el ancho */
+  height: 200px; /* Altura aumentada para mejor visualización */
+  object-fit: cover; /* Asegura que la imagen cubra el espacio sin distorsionarse */
+  display: block; /* Evita espacio extra debajo de la imagen */
+}
+
+/* Estilos para el contenedor principal */
+.semana-santa-container {
+  max-width: 42rem; /* max-w-2xl */
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Estilos para el título */
+.semana-santa-title {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 700;
+  text-align: center;
+  color: #1e40af; /* text-blue-800 */
+  margin-bottom: 2rem; /* mb-8 */
+}
+
+/* Estilos para el texto */
+.semana-santa-text {
+  color: #4a5568; /* text-gray-700 */
+  font-size: 0.875rem; /* text-sm */
+  padding-top: 0.75rem; /* pt-3 */
+}
+
+/* Estilos para el texto destacado */
+.semana-santa-highlight {
+  color: #b91c1c; /* text-red-700 */
+  font-weight: 600;
+}
+
+/* Estilos para el panel especial */
+.semana-santa-panel-special {
+  background-color: #fefce8; /* bg-yellow-50 */
+  border-color: #facc15; /* border-yellow-400 */
+}
+
+.semana-santa-panel-blue {
+  background-color: #eff6ff; /* bg-blue-50 */
+  border-color: #60a5fa; /* border-blue-400 */
+}
+
+.semana-santa-text-blue {
+  color: #1e3a8a; /* text-blue-900 */
+  font-weight: 600;
+}
+
+.semana-santa-text-center {
+  text-align: center;
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700;
+  color: #b91c1c; /* text-red-700 */
+  margin-top: 1rem; /* mt-4 */
+}
+
+/* Media queries para responsividad */
+@media (min-width: 768px) {
+  .semana-santa-title {
+    font-size: 2.25rem; /* md:text-4xl */
+  }
+  
+  .semana-santa-text {
+    font-size: 1rem; /* md:text-base */
+  }
+  
+  .semana-santa-text-center {
+    font-size: 1.5rem; /* md:text-2xl */
+  }
+  
+  .semana-santa-container {
+    padding: 2rem; /* md:p-8 */
+  }
+}
+
+.mensaje-evangelistico {
+  background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%);
+  color: white;
+  padding: 2rem;
+  margin: 3rem auto;
+  border-radius: 1rem;
+  max-width: 800px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mensaje-titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #ffd700;
+}
+
+.mensaje-contenido {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.mensaje-enfasis {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.mensaje-enfasis-especial {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.4rem;
+  display: inline-block;
+  transform: scale(1.1);
+}
+
+.mensaje-dialogo {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-left: 4px solid #ffd700;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mensaje-dialogo .pregunta {
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.mensaje-dialogo .respuesta {
+  font-weight: bold;
+  color: #ffd700;
+  font-size: 1.3rem;
+}
+
+.iglesia-footer {
+  margin-top: 4rem;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%);
+  color: white;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  flex-shrink: 0;
+}
+
+.logo-image {
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.footer-info {
+  text-align: center;
+}
+
+.footer-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #ffd700;
+}
+
+.footer-details {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.location, .contact {
+  margin: 0.5rem 0;
+}
+
+.sub-location {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.phone-link {
+  color: #ffd700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.phone-link:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-logo {
+    margin-bottom: 1rem;
+  }
+}
+
+.share-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%);
+  color: white;
+  border: none;
+  border-radius: 3rem;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  z-index: 1000;
+}
+
+.share-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.share-button:active {
+  transform: translateY(0);
+}
+
+.share-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.share-icon {
+  font-size: 1.5rem;
+}
+
+.share-text {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.loading-icon {
+  font-size: 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .share-button {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .share-text {
+    font-size: 1rem;
+  }
+} 
