@@ -1,0 +1,9 @@
+  # Habilitar el motor de reescritura
+     RewriteEngine On
+     RewriteBase /
+
+     # Permitir acceso a archivos comunes
+     <FilesMatch "\.(php|html|htm|js|css|jpg|jpeg|png|gif|ico)$">
+         Order Allow,Deny
+         Allow from all
+     </FilesMatch>

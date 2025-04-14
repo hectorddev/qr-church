@@ -49,6 +49,22 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <div className="schedule-section">
+          <h2 className="schedule-title">Programación Semanal</h2>
+          <div className="schedule-container">
+            <div className="schedule-item">
+              <div className="schedule-date">Jueves 17/04</div>
+              <div className="schedule-event">Película Especial</div>
+              <div className="schedule-time">5:00pm</div>
+            </div>
+            <div className="schedule-item">
+              <div className="schedule-date">Domingo 20/04</div>
+              <div className="schedule-event">Culto Dominical</div>
+              <div className="schedule-time">9:00am</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
