@@ -72,18 +72,25 @@ class SupabaseDatabase {
   }
 
   async obtenerPuntos(): Promise<PuntoMapa[]> {
+    console.log("🔍 SupabaseDatabase.obtenerPuntos() - Iniciando...");
     const supabase = await this.getSupabase();
+    console.log("📡 Ejecutando query Supabase...");
     const { data, error } = await supabase
       .from("puntos")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error obteniendo puntos de Supabase:", error);
+      console.error("❌ Error obteniendo puntos de Supabase:", error);
       throw error;
     }
 
-    return data.map((row: any) => ({
+    console.log(
+      "✅ Query completada, mapeando",
+      data?.length || 0,
+      "registros"
+    );
+    const puntos = data.map((row: any) => ({
       id: row.id,
       nombre: row.nombre,
       descripcion: row.descripcion,
@@ -96,6 +103,8 @@ class SupabaseDatabase {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     }));
+    console.log("📋 Puntos mapeados correctamente");
+    return puntos;
   }
 
   async obtenerPunto(id: string): Promise<PuntoMapa | null> {
@@ -363,7 +372,9 @@ export async function crearPunto(data: CrearPuntoData) {
 }
 
 export async function obtenerPuntos() {
+  console.log("🔍 obtenerPuntos() - Llamando getDatabase()...");
   const database = getDatabase();
+  console.log("📊 DB obtenida, llamando database.obtenerPuntos()...");
   return await database.obtenerPuntos();
 }
 

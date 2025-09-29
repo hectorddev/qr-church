@@ -5,8 +5,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/puntos - Obtener todos los puntos
 export async function GET() {
+  console.log("🔍 GET /api/puntos - Iniciando...");
   try {
+    console.log("📡 Llamando a obtenerPuntos()...");
     const puntos = await obtenerPuntos();
+    console.log("✅ obtenerPuntos() completado, puntos:", puntos?.length || 0);
 
     const response: ApiResponse = {
       success: true,
@@ -14,9 +17,11 @@ export async function GET() {
       message: "Puntos obtenidos exitosamente",
     };
 
+    console.log("📤 Enviando respuesta exitosa");
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error al obtener puntos:", error);
+    console.error("❌ Error al obtener puntos:", error);
+    console.error("Stack trace:", error.stack);
 
     const response: ApiResponse = {
       success: false,
