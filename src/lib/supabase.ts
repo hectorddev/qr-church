@@ -173,21 +173,29 @@ export async function initializeExampleData() {
     ];
 
     // Insertar puntos
+    console.log("📝 Insertando puntos de ejemplo...");
     const { error: puntosError } = await supabase
       .from("puntos")
       .insert(examplePoints);
 
     if (puntosError) {
-      console.error("Error insertando puntos:", puntosError);
+      console.error("❌ Error insertando puntos:", puntosError);
+      throw puntosError;
+    } else {
+      console.log("✅ Puntos insertados correctamente");
     }
 
     // Insertar usuarios
+    console.log("👥 Insertando usuarios de ejemplo...");
     const { error: usuariosError } = await supabase
       .from("usuarios")
       .insert(exampleUsers);
 
     if (usuariosError) {
-      console.error("Error insertando usuarios:", usuariosError);
+      console.error("❌ Error insertando usuarios:", usuariosError);
+      throw usuariosError;
+    } else {
+      console.log("✅ Usuarios insertados correctamente");
     }
 
     console.log("✅ Datos de ejemplo inicializados correctamente");
@@ -199,12 +207,20 @@ export async function initializeExampleData() {
 
 // Función para inicializar todo
 export async function initializeSupabase() {
+  console.log("🚀 Iniciando inicialización de Supabase...");
   try {
+    console.log("📋 Paso 1: Creando/verificando tablas...");
     await createTables();
+    console.log("✅ Tablas verificadas");
+
+    console.log("📊 Paso 2: Inicializando datos de ejemplo...");
     await initializeExampleData();
+    console.log("✅ Datos de ejemplo inicializados");
+
     console.log("🚀 Supabase inicializado correctamente");
   } catch (error) {
     console.error("❌ Error inicializando Supabase:", error);
+    console.error("Stack trace:", error.stack);
     throw error;
   }
 }
