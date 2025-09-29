@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { PuntoMapa, MapaCoordenadas } from '@/lib/types';
 import PuntoMapaComponent from './PuntoMapa';
 
@@ -108,10 +109,11 @@ export default function MapaInteractivo({
         onClick={handleMapClick}
       >
         {/* Imagen del mapa */}
-        <img
+        <Image
           src="/image.png"
           alt="Mapa de Principios del Camino"
-          className="w-full h-full object-contain"
+          fill
+          className="object-contain"
           draggable={false}
         />
 

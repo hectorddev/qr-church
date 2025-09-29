@@ -8,15 +8,15 @@ import {
 import { CrearPuntoData, ApiResponse } from '@/lib/types';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/puntos/[id] - Obtener un punto específico
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const punto = await obtenerPunto(id);
     
     if (!punto) {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT /api/puntos/[id] - Actualizar un punto específico
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     
     // Validar que el punto existe
@@ -86,7 +86,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.descripcion !== undefined) datosActualizacion.descripcion = body.descripcion;
     if (body.x !== undefined) datosActualizacion.x = body.x;
     if (body.y !== undefined) datosActualizacion.y = body.y;
-    if (body.tipo !== undefined) datosActualizacion.tipo = body.tipo;
+    if (body.emoji !== undefined) datosActualizacion.emoji = body.emoji;
+    if (body.pointerName !== undefined) datosActualizacion.pointerName = body.pointerName;
     if (body.referencias !== undefined) datosActualizacion.referencias = body.referencias;
     if (body.año !== undefined) datosActualizacion.año = body.año;
 
@@ -114,7 +115,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/puntos/[id] - Eliminar un punto específico
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Validar que el punto existe
     const puntoExistente = await obtenerPunto(id);

@@ -2,11 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Configuración de Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Crear cliente de Supabase
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Crear cliente de Supabase solo si las variables están disponibles
+export const supabase = supabaseUrl && supabaseKey 
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 // Tipos para la base de datos
 export interface PuntoMapaDB {
@@ -34,28 +36,25 @@ export interface UsuarioDB {
 
 // Crear tablas si no existen
 export async function createTables() {
+  if (!supabase) {
+    throw new Error('Supabase no está configurado');
+  }
+
   try {
-    // Crear tabla de puntos
-    const { error: puntosError } = await supabase.rpc('create_puntos_table');
-    if (puntosError && !puntosError.message.includes('already exists')) {
-      console.error('Error creando tabla puntos:', puntosError);
-    }
-
-    // Crear tabla de usuarios
-    const { error: usuariosError } = await supabase.rpc('create_usuarios_table');
-    if (usuariosError && !usuariosError.message.includes('already exists')) {
-      console.error('Error creando tabla usuarios:', usuariosError);
-    }
-
-    console.log('✅ Tablas creadas exitosamente en Supabase');
-  } catch (error) {
-    console.error('❌ Error creando tablas:', error);
     // Las tablas se crearán automáticamente con los primeros inserts
+    console.log('✅ Supabase configurado correctamente');
+  } catch (error) {
+    console.error('❌ Error configurando Supabase:', error);
+    throw error;
   }
 }
 
 // Inicializar datos de ejemplo
 export async function initializeExampleData() {
+  if (!supabase) {
+    throw new Error('Supabase no está configurado');
+  }
+
   try {
     // Verificar si ya hay datos
     const { data: existingPoints, error: countError } = await supabase

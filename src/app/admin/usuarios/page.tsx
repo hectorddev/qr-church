@@ -376,7 +376,7 @@ export default function AdminUsuariosPage() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">👥</div>
               <p className="text-xl font-bold text-gray-600 mb-2">No hay usuarios registrados</p>
-              <p className="text-gray-500">Crea el primer usuario usando el botón "Nuevo Usuario"</p>
+              <p className="text-gray-500">Crea el primer usuario usando el botón &quot;Nuevo Usuario&quot;</p>
             </div>
           )}
         </div>

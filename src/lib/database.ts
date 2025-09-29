@@ -20,6 +20,9 @@ class SupabaseDatabase {
       const { supabase } = await import('./supabase');
       this.supabase = supabase;
     }
+    if (!this.supabase) {
+      throw new Error('Supabase no está configurado. Verifica las variables de entorno NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    }
     return this.supabase;
   }
 

@@ -2,6 +2,7 @@
 
 import { QRCodeCanvas } from "qrcode.react";
 import { useRef } from "react";
+import Image from "next/image";
 
 export default function PromoImage() {
   const qrRef = useRef(null);
@@ -35,11 +36,11 @@ export default function PromoImage() {
       <div className="promo-container">
         <div className="promo-content">
           <div className="promo-header">
-            <img
+            <Image
               src="/logo.png"
               alt="Logo I.E.L. El Pan de Vida"
-              width="200"
-              height="200"
+              width={200}
+              height={200}
               className="promo-logo"
               crossOrigin="anonymous"
             />

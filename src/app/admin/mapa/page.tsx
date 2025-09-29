@@ -259,7 +259,7 @@ export default function AdminMapaPage() {
                 <div className="text-center text-gray-500 py-8">
                   <div className="text-6xl mb-4">📍</div>
                   <p className="text-lg font-bold text-gray-600 mb-2">No hay principios en el mapa</p>
-                  <p className="text-sm text-gray-500">Haz clic en "Agregar Principio" para comenzar</p>
+                  <p className="text-sm text-gray-500">Haz clic en &quot;Agregar Principio&quot; para comenzar</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[50vh] sm:max-h-[60vh] lg:max-h-96 overflow-y-auto pr-2">
