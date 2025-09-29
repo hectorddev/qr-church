@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../lib/db";
 import Event from "../../../../models/Event";
 
+const isMongoEnabled = !!process.env.MONGODB_URI;
+
 // GET para obtener un evento específico
 export async function GET(request, context) {
+  if (!isMongoEnabled) {
+    return NextResponse.json(
+      { error: "Eventos API deshabilitada: falta MONGODB_URI" },
+      { status: 503 }
+    );
+  }
   try {
     await connectToDatabase();
     const { params } = context;
@@ -33,6 +41,12 @@ export async function GET(request, context) {
 
 // PUT para actualizar un evento específico
 export async function PUT(request, context) {
+  if (!isMongoEnabled) {
+    return NextResponse.json(
+      { error: "Eventos API deshabilitada: falta MONGODB_URI" },
+      { status: 503 }
+    );
+  }
   try {
     const body = await request.json();
     await connectToDatabase();
@@ -67,6 +81,12 @@ export async function PUT(request, context) {
 
 // DELETE para eliminar un evento específico
 export async function DELETE(request, context) {
+  if (!isMongoEnabled) {
+    return NextResponse.json(
+      { error: "Eventos API deshabilitada: falta MONGODB_URI" },
+      { status: 503 }
+    );
+  }
   try {
     await connectToDatabase();
 

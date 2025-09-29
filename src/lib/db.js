@@ -3,7 +3,12 @@ import mongoose from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error("Por favor define la variable de entorno MONGODB_URI");
+  // No lanzar error al importar: deshabilitar en runtime.
+  // Evita que el build de Vercel falle cuando no hay Mongo configurado.
+  // eslint-disable-next-line no-console
+  console.warn(
+    "MONGODB_URI no definida. La API de eventos estará deshabilitada en este despliegue."
+  );
 }
 
 /**
@@ -20,14 +25,18 @@ if (!cached) {
  * @returns {Promise<mongoose.Connection>}
  */
 export async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    throw new Error(
+      "Eventos API deshabilitada: falta MONGODB_URI en variables de entorno."
+    );
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
+    const opts = { bufferCommands: false };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       return mongoose;

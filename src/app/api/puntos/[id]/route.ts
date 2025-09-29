@@ -1,11 +1,7 @@
 // API Route para manejar operaciones específicas de un punto por ID
-import { NextRequest, NextResponse } from 'next/server';
-import { 
-  obtenerPunto, 
-  actualizarPunto, 
-  eliminarPunto 
-} from '@/lib/db';
-import { CrearPuntoData, ApiResponse } from '@/lib/types';
+import { actualizarPunto, eliminarPunto, obtenerPunto } from "@/lib/database";
+import { ApiResponse, CrearPuntoData } from "@/lib/types";
+import { NextRequest, NextResponse } from "next/server";
 
 interface RouteParams {
   params: Promise<{
@@ -18,28 +14,28 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const punto = await obtenerPunto(id);
-    
+
     if (!punto) {
       const response: ApiResponse = {
         success: false,
-        error: 'Punto no encontrado'
+        error: "Punto no encontrado",
       };
       return NextResponse.json(response, { status: 404 });
     }
-    
+
     const response: ApiResponse = {
       success: true,
       data: punto,
-      message: 'Punto obtenido exitosamente'
+      message: "Punto obtenido exitosamente",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error al obtener punto:', error);
-    
+    console.error("Error al obtener punto:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -51,13 +47,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    
+
     // Validar que el punto existe
     const puntoExistente = await obtenerPunto(id);
     if (!puntoExistente) {
       const response: ApiResponse = {
         success: false,
-        error: 'Punto no encontrado'
+        error: "Punto no encontrado",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -66,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.x !== undefined && (body.x < 0 || body.x > 100)) {
       const response: ApiResponse = {
         success: false,
-        error: 'La coordenada x debe estar entre 0 y 100'
+        error: "La coordenada x debe estar entre 0 y 100",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -74,38 +70,41 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.y !== undefined && (body.y < 0 || body.y > 100)) {
       const response: ApiResponse = {
         success: false,
-        error: 'La coordenada y debe estar entre 0 y 100'
+        error: "La coordenada y debe estar entre 0 y 100",
       };
       return NextResponse.json(response, { status: 400 });
     }
 
     const datosActualizacion: Partial<CrearPuntoData> = {};
-    
+
     // Solo actualizar campos proporcionados
     if (body.nombre !== undefined) datosActualizacion.nombre = body.nombre;
-    if (body.descripcion !== undefined) datosActualizacion.descripcion = body.descripcion;
+    if (body.descripcion !== undefined)
+      datosActualizacion.descripcion = body.descripcion;
     if (body.x !== undefined) datosActualizacion.x = body.x;
     if (body.y !== undefined) datosActualizacion.y = body.y;
     if (body.emoji !== undefined) datosActualizacion.emoji = body.emoji;
-    if (body.pointerName !== undefined) datosActualizacion.pointerName = body.pointerName;
-    if (body.referencias !== undefined) datosActualizacion.referencias = body.referencias;
+    if (body.pointerName !== undefined)
+      datosActualizacion.pointerName = body.pointerName;
+    if (body.referencias !== undefined)
+      datosActualizacion.referencias = body.referencias;
     if (body.año !== undefined) datosActualizacion.año = body.año;
 
     const puntoActualizado = await actualizarPunto(id, datosActualizacion);
-    
+
     const response: ApiResponse = {
       success: true,
       data: puntoActualizado,
-      message: 'Punto actualizado exitosamente'
+      message: "Punto actualizado exitosamente",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error al actualizar punto:', error);
-    
+    console.error("Error al actualizar punto:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -116,39 +115,39 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    
+
     // Validar que el punto existe
     const puntoExistente = await obtenerPunto(id);
     if (!puntoExistente) {
       const response: ApiResponse = {
         success: false,
-        error: 'Punto no encontrado'
+        error: "Punto no encontrado",
       };
       return NextResponse.json(response, { status: 404 });
     }
 
     const eliminado = await eliminarPunto(id);
-    
+
     if (!eliminado) {
       const response: ApiResponse = {
         success: false,
-        error: 'Error al eliminar el punto'
+        error: "Error al eliminar el punto",
       };
       return NextResponse.json(response, { status: 500 });
     }
-    
+
     const response: ApiResponse = {
       success: true,
-      message: 'Punto eliminado exitosamente'
+      message: "Punto eliminado exitosamente",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error al eliminar punto:', error);
-    
+    console.error("Error al eliminar punto:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });

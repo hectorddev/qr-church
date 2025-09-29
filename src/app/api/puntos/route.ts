@@ -1,30 +1,26 @@
 // API Route para manejar puntos del mapa
-import { NextRequest, NextResponse } from 'next/server';
-import { 
-  obtenerPuntos, 
-  crearPunto, 
-  eliminarTodosPuntos 
-} from '@/lib/db';
-import { CrearPuntoData, ApiResponse } from '@/lib/types';
+import { crearPunto, eliminarTodosPuntos, obtenerPuntos } from "@/lib/database";
+import { ApiResponse, CrearPuntoData } from "@/lib/types";
+import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/puntos - Obtener todos los puntos
 export async function GET() {
   try {
     const puntos = await obtenerPuntos();
-    
+
     const response: ApiResponse = {
       success: true,
       data: puntos,
-      message: 'Puntos obtenidos exitosamente'
+      message: "Puntos obtenidos exitosamente",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error al obtener puntos:', error);
-    
+    console.error("Error al obtener puntos:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -35,13 +31,19 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validar datos requeridos
     const { nombre, x, y, emoji, pointerName } = body;
-    if (!nombre || typeof x !== 'number' || typeof y !== 'number' || !emoji || !pointerName) {
+    if (
+      !nombre ||
+      typeof x !== "number" ||
+      typeof y !== "number" ||
+      !emoji ||
+      !pointerName
+    ) {
       const response: ApiResponse = {
         success: false,
-        error: 'Datos requeridos: nombre, x, y, emoji, pointerName'
+        error: "Datos requeridos: nombre, x, y, emoji, pointerName",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (x < 0 || x > 100 || y < 0 || y > 100) {
       const response: ApiResponse = {
         success: false,
-        error: 'Las coordenadas x e y deben estar entre 0 y 100'
+        error: "Las coordenadas x e y deben estar entre 0 y 100",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -61,26 +63,26 @@ export async function POST(request: NextRequest) {
       y,
       emoji,
       pointerName,
-      descripcion: body.descripcion || '',
-      referencias: body.referencias || '',
-      año: body.año || ''
+      descripcion: body.descripcion || "",
+      referencias: body.referencias || "",
+      año: body.año || "",
     };
 
     const nuevoPunto = await crearPunto(puntoData);
-    
+
     const response: ApiResponse = {
       success: true,
       data: nuevoPunto,
-      message: 'Punto creado exitosamente'
+      message: "Punto creado exitosamente",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error al crear punto:', error);
-    
+    console.error("Error al crear punto:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });
@@ -91,20 +93,20 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     const count = await eliminarTodosPuntos();
-    
+
     const response: ApiResponse = {
       success: true,
       data: { count },
-      message: `${count} puntos eliminados exitosamente`
+      message: `${count} puntos eliminados exitosamente`,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error al eliminar puntos:', error);
-    
+    console.error("Error al eliminar puntos:", error);
+
     const response: ApiResponse = {
       success: false,
-      error: 'Error interno del servidor'
+      error: "Error interno del servidor",
     };
 
     return NextResponse.json(response, { status: 500 });
