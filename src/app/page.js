@@ -1,71 +1,33 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        router.push('/mapa');
+      } else {
+        router.push('/login');
+      }
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
   return (
-    <div className="contact-page-wrapper">
-      <div className="contact-container">
-        <div className="church-info">
-          <div className="church-logo">
-            <Image
-              src="/logo.png"
-              alt="Logo I.E.L. El Pan de Vida"
-              width={200}
-              height={200}
-              className="logo-main"
-              priority
-            />
-          </div>
-
-          <h1 className="church-name">I.E.L. &ldquo;El Pan de Vida&rdquo;</h1>
-
-          <div className="contact-info">
-            <div className="info-card location-card">
-              <div className="card-icon">📍</div>
-              <div className="card-content">
-                <h2>Ubicación</h2>
-                <p className="main-text">El Abejal de Palmira</p>
-                <p className="sub-text">
-                  Vereda 6, 100mt más arriba de la Escuela
-                </p>
-              </div>
-            </div>
-
-            <div className="info-card contact-card">
-              <div className="card-icon">📞</div>
-              <div className="card-content">
-                <h2>Contáctanos</h2>
-                <a
-                  href="https://wa.me/584247218061"
-                  className="contact-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  0424-7218061
-                  <span className="whatsapp-text">Envíanos un mensaje</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="schedule-section">
-          <h2 className="schedule-title">Programación Semanal</h2>
-          <div className="schedule-container">
-            <div className="schedule-item">
-              <div className="schedule-date">Jueves 17/04</div>
-              <div className="schedule-event">Película Especial</div>
-              <div className="schedule-time">5:00pm</div>
-            </div>
-            <div className="schedule-item">
-              <div className="schedule-date">Domingo 20/04</div>
-              <div className="schedule-event">Culto Dominical</div>
-              <div className="schedule-time">9:00am</div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-20 w-20 border-4 border-purple-200 mx-auto mb-6"></div>
+          <p className="text-2xl font-bold text-purple-700">Cargando...</p>
       </div>
     </div>
   );
+}
+
+  return null; // Se redirigirá automáticamente
 }

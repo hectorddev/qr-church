@@ -6,20 +6,32 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pre-deploy": "node scripts/pre-deploy.js",
+    "deploy-check": "npm run pre-deploy && npm run build",
+    "setup-supabase": "node scripts/setup-supabase.js"
   },
   "dependencies": {
+    "@planetscale/database": "^1.19.0",
+    "@supabase/supabase-js": "^2.58.0",
     "animejs": "^4.0.0",
     "framer-motion": "^12.6.3",
     "html2canvas": "^1.4.1",
     "mongoose": "^8.13.2",
     "next": "15.2.4",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "24.4.0",
+    "@types/react": "19.1.13",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
-    "eslint-config-next": "15.2.4"
+    "eslint-config-next": "15.2.4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.13"
   }
 }
