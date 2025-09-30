@@ -34,8 +34,11 @@ export async function GET() {
 
 // POST /api/puntos - Crear un nuevo punto
 export async function POST(request: NextRequest) {
+  console.log("🔍 POST /api/puntos - Iniciando...");
   try {
+    console.log("📄 Leyendo body de la request...");
     const body = await request.json();
+    console.log("✅ Body parseado:", body);
 
     // Validar datos requeridos
     const { nombre, x, y, emoji, pointerName } = body;
