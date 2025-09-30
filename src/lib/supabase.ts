@@ -74,14 +74,28 @@ export async function initializeExampleData() {
   }
 
   try {
-    // Verificar si ya hay datos
-    const { data: existingPoints, error: countError } = await supabase
-      .from("puntos")
-      .select("id")
-      .limit(1);
+    // Verificar si ya hay datos (con manejo de error si tabla no existe)
+    let existingPoints = null;
+    try {
+      const { data, error } = await supabase
+        .from("puntos")
+        .select("id")
+        .limit(1);
 
-    if (countError) {
-      console.log("Creando tabla puntos...");
+      if (error && error.code !== "PGRST205") {
+        // PGRST205 = tabla no existe
+        throw error;
+      }
+
+      existingPoints = data;
+    } catch (error) {
+      if (error.code === "PGRST205") {
+        console.log(
+          "⚠️ Tabla puntos no existe, se creará con el primer insert"
+        );
+      } else {
+        throw error;
+      }
     }
 
     if (existingPoints && existingPoints.length > 0) {
