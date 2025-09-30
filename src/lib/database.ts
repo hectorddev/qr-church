@@ -77,8 +77,8 @@ class SupabaseDatabase {
     console.log("📡 Ejecutando query Supabase...");
     const { data, error } = await supabase
       .from("puntos")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("id,nombre,descripcion,x,y,emoji,pointerName,referencias,año")
+      .order("id", { ascending: false });
 
     if (error) {
       console.error("❌ Error obteniendo puntos de Supabase:", error);
@@ -100,8 +100,8 @@ class SupabaseDatabase {
       pointerName: row.pointerName,
       referencias: row.referencias,
       año: row.año,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      createdAt: new Date(), // Usar fecha actual si no existe en DB
+      updatedAt: new Date(),
     }));
     console.log("📋 Puntos mapeados correctamente");
     return puntos;
@@ -111,7 +111,7 @@ class SupabaseDatabase {
     const supabase = await this.getSupabase();
     const { data, error } = await supabase
       .from("puntos")
-      .select("*")
+      .select("id,nombre,descripcion,x,y,emoji,pointerName,referencias,año")
       .eq("id", id)
       .single();
 
@@ -131,8 +131,8 @@ class SupabaseDatabase {
       pointerName: data.pointerName,
       referencias: data.referencias,
       año: data.año,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      createdAt: new Date(), // Usar fecha actual
+      updatedAt: new Date(),
     };
   }
 
