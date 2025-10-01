@@ -18,6 +18,8 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_rol ON usuarios(rol);
 CREATE INDEX IF NOT EXISTS idx_usuarios_created_at ON usuarios(created_at);
 
 -- Crear tabla retos (si no existe)
+-- IMPORTANTE: Asegúrate de que NO exista una tabla 'retos' previa con tipos incorrectos
+-- Si existe, elimínala primero con: DROP TABLE retos;
 CREATE TABLE IF NOT EXISTS retos (
   id VARCHAR(255) PRIMARY KEY,
   titulo VARCHAR(255) NOT NULL,
