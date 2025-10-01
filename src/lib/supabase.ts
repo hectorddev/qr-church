@@ -71,8 +71,50 @@ export async function createTables() {
   }
 
   try {
-    // Las tablas se crearán automáticamente con los primeros inserts
-    console.log("✅ Supabase configurado correctamente");
+    console.log("🔧 Creando/verificar tablas en Supabase...");
+
+    // Crear tabla usuarios si no existe
+    const { error: usuariosError } = await supabase.rpc(
+      "create_usuarios_table_if_not_exists"
+    );
+
+    if (usuariosError && usuariosError.code !== "PGRST116") {
+      console.log(
+        "⚠️ Función RPC no existe, intentando crear tabla manualmente..."
+      );
+
+      // Intentar crear la tabla directamente (puede fallar si ya existe)
+      try {
+        await supabase.from("usuarios").select("id").limit(1);
+        console.log("✅ Tabla usuarios ya existe");
+      } catch (error) {
+        if (error.code === "PGRST205") {
+          console.log(
+            "❌ Tabla usuarios no existe. Debes crearla manualmente en Supabase Dashboard:"
+          );
+          console.log("📋 SQL para crear la tabla:");
+          console.log(`
+CREATE TABLE usuarios (
+  id VARCHAR(255) PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  versiculo_id VARCHAR(255) NOT NULL,
+  rol ENUM('admin', 'usuario') NOT NULL DEFAULT 'usuario',
+  puntuacion INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+          `);
+          throw new Error(
+            "Tabla 'usuarios' no existe. Crea la tabla manualmente en Supabase Dashboard usando el SQL proporcionado."
+          );
+        }
+        throw error;
+      }
+    } else {
+      console.log("✅ Tabla usuarios verificada/creada");
+    }
+
+    console.log("✅ Todas las tablas verificadas");
   } catch (error) {
     console.error("❌ Error configurando Supabase:", error);
     throw error;

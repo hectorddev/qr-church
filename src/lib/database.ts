@@ -233,18 +233,35 @@ class SupabaseDatabase {
   }
 
   async obtenerUsuarios(): Promise<Usuario[]> {
+    console.log("🔍 SupabaseDatabase.obtenerUsuarios() - Iniciando...");
     const supabase = await this.getSupabase();
-    const { data, error } = await supabase
+    console.log("📡 Ejecutando query Supabase...");
+
+    // Intentar obtener usuarios con puntuacion, si falla intentar sin puntuacion
+    let { data, error } = await supabase
       .from("usuarios")
       .select("id,nombre,versiculo_id,rol,puntuacion,created_at,updated_at")
       .order("created_at", { ascending: false });
 
+    if (error && error.code === "42703") {
+      // Columna puntuacion no existe, intentar sin ella
+      console.log("⚠️ Columna puntuacion no existe, intentando sin ella...");
+      const result = await supabase
+        .from("usuarios")
+        .select("id,nombre,versiculo_id,rol,created_at,updated_at")
+        .order("created_at", { ascending: false });
+
+      data = result.data;
+      error = result.error;
+    }
+
     if (error) {
-      console.error("Error obteniendo usuarios de Supabase:", error);
+      console.error("❌ Error obteniendo usuarios de Supabase:", error);
       throw error;
     }
 
-    return data.map((row: any) => ({
+    console.log("✅ Query completada, mapeando", data?.length || 0, "usuarios");
+    const usuarios = data.map((row: any) => ({
       id: row.id,
       nombre: row.nombre,
       versiculo_id: row.versiculo_id,
@@ -253,6 +270,8 @@ class SupabaseDatabase {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     }));
+    console.log("📋 Usuarios mapeados correctamente");
+    return usuarios;
   }
 
   async obtenerUsuario(id: string): Promise<Usuario | null> {
