@@ -504,7 +504,7 @@ export default function AdminRetosPage() {
                 No hay retos registrados
               </p>
               <p className="text-gray-500">
-                Crea el primer reto usando el botón "Nuevo Reto"
+                Crea el primer reto usando el botón &quot;Nuevo Reto&quot;
               </p>
             </div>
           )}
