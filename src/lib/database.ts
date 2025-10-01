@@ -381,7 +381,25 @@ class SupabaseDatabase {
   }
 
   async obtenerRetos(): Promise<Reto[]> {
+    console.log("🔍 SupabaseDatabase.obtenerRetos() - Iniciando...");
     const supabase = await this.getSupabase();
+
+    // Verificar si la tabla existe primero
+    try {
+      await supabase.from("retos").select("id").limit(1);
+    } catch (error) {
+      if (error.code === "PGRST205") {
+        console.log(
+          "❌ Tabla retos no existe. Debes crearla usando el script SQL."
+        );
+        throw new Error(
+          "Tabla 'retos' no existe. Ejecuta el script scripts/create-usuarios-table.sql en Supabase Dashboard → SQL Editor"
+        );
+      }
+      throw error;
+    }
+
+    console.log("📡 Ejecutando query Supabase...");
     const { data, error } = await supabase
       .from("retos")
       .select(
@@ -390,11 +408,12 @@ class SupabaseDatabase {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error obteniendo retos de Supabase:", error);
+      console.error("❌ Error obteniendo retos de Supabase:", error);
       throw error;
     }
 
-    return data.map((row: any) => ({
+    console.log("✅ Query completada, mapeando", data?.length || 0, "retos");
+    const retos = data.map((row: any) => ({
       id: row.id,
       titulo: row.titulo,
       descripcion: row.descripcion,
@@ -404,6 +423,8 @@ class SupabaseDatabase {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     }));
+    console.log("📋 Retos mapeados correctamente");
+    return retos;
   }
 
   async obtenerRetosActivos(): Promise<Reto[]> {
