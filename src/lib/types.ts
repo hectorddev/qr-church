@@ -5,7 +5,8 @@ export interface Usuario {
   id: string;
   nombre: string;
   versiculo_id: string;
-  rol: 'admin' | 'usuario';
+  rol: "admin" | "usuario";
+  puntuacion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,7 +26,28 @@ export interface AuthResponse {
 export interface CrearUsuarioData {
   nombre: string;
   versiculo_id: string;
-  rol: 'admin' | 'usuario';
+  rol: "admin" | "usuario";
+  puntuacion?: number;
+}
+
+// Tipos para retos semanales
+export interface Reto {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  fecha_inicio: Date;
+  fecha_fin: Date;
+  activo: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CrearRetoData {
+  titulo: string;
+  descripcion: string;
+  fecha_inicio: Date;
+  fecha_fin: Date;
+  activo?: boolean;
 }
 
 export interface ApiResponse<T = any> {
@@ -105,6 +127,24 @@ export interface FormularioPuntoProps {
 
 // Emojis comunes para seleccionar (estilo WhatsApp)
 export const EMOJIS_COMUNES = [
-  '🙏', '❤️', '🌟', '📚', '🤝', '💪', '🔥', '✨', '💡', '🎯',
-  '📍', '⭐', '💎', '🌈', '🦋', '🌺', '🍀', '🎨', '🎵', '🎪'
+  "🙏",
+  "❤️",
+  "🌟",
+  "📚",
+  "🤝",
+  "💪",
+  "🔥",
+  "✨",
+  "💡",
+  "🎯",
+  "📍",
+  "⭐",
+  "💎",
+  "🌈",
+  "🦋",
+  "🌺",
+  "🍀",
+  "🎨",
+  "🎵",
+  "🎪",
 ] as const;

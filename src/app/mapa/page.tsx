@@ -1,45 +1,80 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { PuntoMapa, ApiResponse } from '@/lib/types';
-import MapaInteractivo from '@/components/mapa/MapaInteractivo';
+import MapaInteractivo from "@/components/mapa/MapaInteractivo";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiResponse, PuntoMapa, Reto, Usuario } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 export default function MapaPage() {
+  const { usuario } = useAuth();
   const [puntos, setPuntos] = useState<PuntoMapa[]>([]);
+  const [retos, setRetos] = useState<Reto[]>([]);
+  const [ranking, setRanking] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<PuntoMapa | null>(null);
 
-  // Cargar puntos al montar el componente
+  // Cargar datos al montar el componente
   useEffect(() => {
     loadPuntos();
+    loadRetos();
+    loadRanking();
   }, []);
 
   const loadPuntos = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/puntos');
+
+      const response = await fetch("/api/puntos");
       const data: ApiResponse<PuntoMapa[]> = await response.json();
-      
+
       if (data.success && data.data) {
         setPuntos(data.data);
       } else {
-        throw new Error(data.error || 'Error al cargar puntos');
+        throw new Error(data.error || "Error al cargar puntos");
       }
     } catch (err) {
-      console.error('Error loading puntos:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      console.error("Error loading puntos:", err);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRetos = async () => {
+    try {
+      const response = await fetch("/api/retos?activos=true");
+      const data: ApiResponse<Reto[]> = await response.json();
+
+      if (data.success && data.data) {
+        setRetos(data.data);
+      }
+    } catch (err) {
+      console.error("Error loading retos:", err);
+    }
+  };
+
+  const loadRanking = async () => {
+    try {
+      const response = await fetch("/api/auth/usuarios");
+      const data: ApiResponse<Usuario[]> = await response.json();
+
+      if (data.success && data.data) {
+        // Ordenar por puntuación descendente y tomar top 3
+        const top3 = data.data
+          .sort((a, b) => b.puntuacion - a.puntuacion)
+          .slice(0, 3);
+        setRanking(top3);
+      }
+    } catch (err) {
+      console.error("Error loading ranking:", err);
     }
   };
 
   const handlePointClick = (punto: PuntoMapa) => {
     setSelectedPoint(punto);
   };
-
 
   if (loading) {
     return (
@@ -49,8 +84,12 @@ export default function MapaPage() {
             <div className="animate-spin rounded-full h-20 w-20 border-4 border-purple-200 mx-auto mb-6"></div>
             <div className="animate-spin rounded-full h-20 w-20 border-4 border-pink-500 border-t-transparent absolute top-0 left-1/2 transform -translate-x-1/2"></div>
           </div>
-          <p className="text-2xl font-bold text-purple-700 mb-2">🚀 Cargando principios...</p>
-          <p className="text-lg text-purple-600">Preparando tu experiencia espiritual</p>
+          <p className="text-2xl font-bold text-purple-700 mb-2">
+            🚀 Cargando principios...
+          </p>
+          <p className="text-lg text-purple-600">
+            Preparando tu experiencia espiritual
+          </p>
         </div>
       </div>
     );
@@ -68,10 +107,26 @@ export default function MapaPage() {
             <p className="text-lg sm:text-xl text-purple-600 font-medium mb-4">
               🚀 Explora los principios bíblicos que transformarán tu vida
             </p>
+
+            {/* Información del usuario */}
+            {usuario && (
+              <div className="mb-4 inline-flex items-center gap-3 bg-gradient-to-r from-yellow-100 to-orange-100 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border-2 border-yellow-300">
+                <span className="text-2xl">👤</span>
+                <span className="text-gray-800 font-bold text-lg">
+                  ¡Hola, {usuario.nombre}!
+                </span>
+                <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full">
+                  <span className="text-lg">🏆</span>
+                  <span className="font-bold">{usuario.puntuacion} puntos</span>
+                </div>
+              </div>
+            )}
+
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg border border-purple-200">
               <span className="text-2xl">📍</span>
               <span className="text-purple-700 font-bold">
-                {puntos.length} principio{puntos.length !== 1 ? 's' : ''} disponible{puntos.length !== 1 ? 's' : ''}
+                {puntos.length} principio{puntos.length !== 1 ? "s" : ""}{" "}
+                disponible{puntos.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
@@ -86,7 +141,9 @@ export default function MapaPage() {
             <div className="flex items-center">
               <div className="text-3xl mr-4">🚨</div>
               <div>
-                <h3 className="text-lg font-bold text-red-800">¡Ups! Algo salió mal</h3>
+                <h3 className="text-lg font-bold text-red-800">
+                  ¡Ups! Algo salió mal
+                </h3>
                 <p className="text-red-700 mt-1 font-medium">{error}</p>
               </div>
               <button
@@ -120,7 +177,7 @@ export default function MapaPage() {
                   <h3 className="text-2xl font-black text-purple-800 mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     ✨ Principio ✨
                   </h3>
-                  
+
                   <div className="space-y-6">
                     {/* Nombre y tipo */}
                     <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-4 border-2 border-purple-200">
@@ -129,7 +186,7 @@ export default function MapaPage() {
                       </h4>
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">
-                          {selectedPoint.emoji || '📍'}
+                          {selectedPoint.emoji || "📍"}
                         </span>
                         <span className="text-lg font-bold text-gray-700">
                           {selectedPoint.pointerName}
@@ -140,7 +197,9 @@ export default function MapaPage() {
                     {/* Descripción */}
                     {selectedPoint.descripcion && (
                       <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-4 border-2 border-blue-200">
-                        <h5 className="font-black text-blue-800 mb-3 text-lg">📖 Descripción</h5>
+                        <h5 className="font-black text-blue-800 mb-3 text-lg">
+                          📖 Descripción
+                        </h5>
                         <p className="text-gray-800 leading-relaxed font-medium">
                           {selectedPoint.descripcion}
                         </p>
@@ -150,7 +209,9 @@ export default function MapaPage() {
                     {/* Versículos relevantes */}
                     {selectedPoint.referencias && (
                       <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl p-4 border-2 border-green-200">
-                        <h5 className="font-black text-green-800 mb-3 text-lg">📜 Versículos Relevantes</h5>
+                        <h5 className="font-black text-green-800 mb-3 text-lg">
+                          📜 Versículos Relevantes
+                        </h5>
                         <p className="text-gray-800 font-medium">
                           {selectedPoint.referencias}
                         </p>
@@ -160,7 +221,9 @@ export default function MapaPage() {
                     {/* Aplicación práctica */}
                     {selectedPoint.año && (
                       <div className="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl p-4 border-2 border-orange-200">
-                        <h5 className="font-black text-orange-800 mb-3 text-lg">🎯 Aplicación Práctica</h5>
+                        <h5 className="font-black text-orange-800 mb-3 text-lg">
+                          🎯 Aplicación Práctica
+                        </h5>
                         <p className="text-gray-800 font-medium">
                           {selectedPoint.año}
                         </p>
@@ -169,9 +232,12 @@ export default function MapaPage() {
 
                     {/* Coordenadas */}
                     <div className="bg-gradient-to-r from-gray-100 to-slate-100 rounded-2xl p-4 border-2 border-gray-200">
-                      <h5 className="font-black text-gray-800 mb-2 text-lg">📍 Ubicación</h5>
+                      <h5 className="font-black text-gray-800 mb-2 text-lg">
+                        📍 Ubicación
+                      </h5>
                       <p className="text-gray-600 font-medium">
-                        {selectedPoint.x.toFixed(1)}%, {selectedPoint.y.toFixed(1)}%
+                        {selectedPoint.x.toFixed(1)}%,{" "}
+                        {selectedPoint.y.toFixed(1)}%
                       </p>
                     </div>
 
@@ -189,12 +255,16 @@ export default function MapaPage() {
                   <h3 className="text-2xl font-black text-purple-800 mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     🚀 Principios del Camino 🚀
                   </h3>
-                  
+
                   {puntos.length === 0 ? (
                     <div className="text-center text-gray-600 py-12">
                       <div className="text-6xl mb-4">🌟</div>
-                      <p className="text-xl font-bold mb-2">¡No hay principios aún!</p>
-                      <p className="text-lg">Los principios bíblicos aparecerán aquí</p>
+                      <p className="text-xl font-bold mb-2">
+                        ¡No hay principios aún!
+                      </p>
+                      <p className="text-lg">
+                        Los principios bíblicos aparecerán aquí
+                      </p>
                     </div>
                   ) : (
                     <div>
@@ -202,25 +272,30 @@ export default function MapaPage() {
                         <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-4 border-2 border-blue-200 mb-4">
                           <div className="text-4xl mb-2">🎯</div>
                           <p className="text-lg text-gray-700 font-medium">
-                            Haz clic en un punto del mapa para explorar el principio bíblico
+                            Haz clic en un punto del mapa para explorar el
+                            principio bíblico
                           </p>
                         </div>
                       </div>
-                      
+
                       {/* Lista de principios disponibles */}
                       <div className="space-y-3">
-                        <h5 className="font-black text-gray-800 text-xl mb-4 text-center">📋 Principios disponibles</h5>
+                        <h5 className="font-black text-gray-800 text-xl mb-4 text-center">
+                          📋 Principios disponibles
+                        </h5>
                         {puntos.map((punto) => (
-                          <div 
-                            key={punto.id} 
+                          <div
+                            key={punto.id}
                             className="flex items-center justify-between bg-gradient-to-r from-white to-gray-50 rounded-2xl p-3 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
                             onClick={() => handlePointClick(punto)}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">
-                                {punto.emoji || '📍'}
+                                {punto.emoji || "📍"}
                               </span>
-                              <span className="font-bold text-gray-800">{punto.nombre}</span>
+                              <span className="font-bold text-gray-800">
+                                {punto.nombre}
+                              </span>
                             </div>
                             <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full font-bold text-sm">
                               {punto.pointerName}
@@ -236,15 +311,128 @@ export default function MapaPage() {
           </div>
         </div>
 
-      </main>
+        {/* Sección de retos semanales */}
+        {retos.length > 0 && (
+          <div className="mt-12">
+            <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-3xl shadow-2xl border-4 border-green-200 p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl sm:text-4xl font-black text-green-800 mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  🎯 Retos Semanales
+                </h2>
+                <p className="text-lg text-green-700 font-medium">
+                  ¡Participa en nuestros retos espirituales y gana puntos!
+                </p>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {retos.map((reto) => (
+                  <div
+                    key={reto.id}
+                    className="bg-gradient-to-r from-white to-green-50 rounded-2xl p-6 border-2 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-3xl">🎯</span>
+                      <h3 className="font-black text-green-800 text-xl">
+                        {reto.titulo}
+                      </h3>
+                    </div>
+
+                    <p className="text-gray-700 font-medium mb-4 leading-relaxed">
+                      {reto.descripcion}
+                    </p>
+
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p>
+                        <strong>📅 Inicio:</strong>{" "}
+                        {new Date(reto.fecha_inicio).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <strong>📅 Fin:</strong>{" "}
+                        {new Date(reto.fecha_fin).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-bold ${
+                          reto.activo
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                            : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+                        }`}
+                      >
+                        {reto.activo ? "Activo" : "Finalizado"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ranking Top 3 */}
+        {ranking.length > 0 && (
+          <div className="mt-12">
+            <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 rounded-3xl shadow-2xl border-4 border-yellow-200 p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl sm:text-4xl font-black text-yellow-800 mb-4 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  🏆 Ranking de Campeones
+                </h2>
+                <p className="text-lg text-yellow-700 font-medium">
+                  ¡Los mejores participantes de nuestra comunidad!
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                {ranking.map((usuario, index) => (
+                  <div
+                    key={usuario.id}
+                    className={`text-center p-6 rounded-2xl shadow-lg border-2 transform transition-all duration-300 hover:scale-105 ${
+                      index === 0
+                        ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300"
+                        : index === 1
+                        ? "bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300"
+                        : "bg-gradient-to-r from-orange-100 to-red-100 border-orange-300"
+                    }`}
+                  >
+                    <div
+                      className={`text-6xl mb-3 ${
+                        index === 0
+                          ? "text-yellow-500"
+                          : index === 1
+                          ? "text-gray-500"
+                          : "text-orange-500"
+                      }`}
+                    >
+                      {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                    </div>
+                    <h3 className="font-black text-gray-800 text-xl mb-2">
+                      {usuario.nombre}
+                    </h3>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-2xl">🏆</span>
+                      <span className="font-bold text-lg text-gray-700">
+                        {usuario.puntuacion} puntos
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
       {/* Footer */}
       <footer className="bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-indigo-600/5 border-t border-purple-200/30 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center">
-            <p className="text-lg font-bold text-purple-700 mb-1">✨ Pámpanos ✨</p>
+            <p className="text-lg font-bold text-purple-700 mb-1">
+              ✨ Pámpanos ✨
+            </p>
             <p className="text-purple-600 font-medium">Principios del Camino</p>
-            <p className="text-sm text-purple-500 mt-2">&copy; 2025 - Transformando vidas a través de la Palabra</p>
+            <p className="text-sm text-purple-500 mt-2">
+              &copy; 2025 - Transformando vidas a través de la Palabra
+            </p>
           </div>
         </div>
       </footer>

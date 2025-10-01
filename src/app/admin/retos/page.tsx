@@ -1,30 +1,27 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { ApiResponse, CrearUsuarioData, Usuario } from "@/lib/types";
+import { ApiResponse, CrearRetoData, Reto } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-export default function AdminUsuariosPage() {
+export default function AdminRetosPage() {
   const { isAdmin, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [retos, setRetos] = useState<Reto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<CrearUsuarioData>({
-    nombre: "",
-    versiculo_id: "",
-    rol: "usuario",
+  const [formData, setFormData] = useState<CrearRetoData>({
+    titulo: "",
+    descripcion: "",
+    fecha_inicio: new Date(),
+    fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días por defecto
+    activo: true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [editingPuntuacion, setEditingPuntuacion] = useState<{
-    [key: string]: number;
-  }>({});
-  const [updatingPuntuacion, setUpdatingPuntuacion] = useState<string | null>(
-    null
-  );
+  const [editingReto, setEditingReto] = useState<Reto | null>(null);
 
   // Redirigir si no es admin
   useEffect(() => {
@@ -33,28 +30,28 @@ export default function AdminUsuariosPage() {
     }
   }, [isAuthenticated, isAdmin, isLoading, router]);
 
-  // Cargar usuarios
+  // Cargar retos
   useEffect(() => {
     if (isAdmin) {
-      loadUsuarios();
+      loadRetos();
     }
   }, [isAdmin]);
 
-  const loadUsuarios = async () => {
+  const loadRetos = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/auth/usuarios");
-      const data: ApiResponse<Usuario[]> = await response.json();
+      const response = await fetch("/api/retos");
+      const data: ApiResponse<Reto[]> = await response.json();
 
       if (data.success && data.data) {
-        setUsuarios(data.data);
+        setRetos(data.data);
       } else {
-        throw new Error(data.error || "Error al cargar usuarios");
+        throw new Error(data.error || "Error al cargar retos");
       }
     } catch (err) {
-      console.error("Error loading usuarios:", err);
+      console.error("Error loading retos:", err);
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
@@ -62,15 +59,26 @@ export default function AdminUsuariosPage() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
     // Limpiar errores cuando el usuario empiece a escribir
     if (error) setError(null);
+  };
+
+  const handleDateChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: new Date(value),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,61 +87,85 @@ export default function AdminUsuariosPage() {
     setError(null);
 
     // Validaciones del lado del cliente
-    if (!formData.nombre.trim()) {
-      setError("El nombre es requerido");
+    if (!formData.titulo.trim()) {
+      setError("El título es requerido");
       setSubmitting(false);
       return;
     }
 
-    if (!formData.versiculo_id.trim()) {
-      setError("El versículo ID es requerido");
+    if (!formData.descripcion.trim()) {
+      setError("La descripción es requerida");
       setSubmitting(false);
       return;
     }
 
-    if (formData.nombre.length < 2) {
-      setError("El nombre debe tener al menos 2 caracteres");
-      setSubmitting(false);
-      return;
-    }
-
-    if (formData.versiculo_id.length < 3) {
-      setError("El versículo ID debe tener al menos 3 caracteres");
+    if (formData.fecha_fin <= formData.fecha_inicio) {
+      setError("La fecha de fin debe ser posterior a la fecha de inicio");
       setSubmitting(false);
       return;
     }
 
     try {
-      const response = await fetch("/api/auth/usuarios", {
-        method: "POST",
+      const url = editingReto ? `/api/retos/${editingReto.id}` : "/api/retos";
+      const method = editingReto ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
-      const data: ApiResponse<Usuario> = await response.json();
+      const data: ApiResponse<Reto> = await response.json();
 
       if (data.success && data.data) {
-        setUsuarios((prev) => [...prev, data.data!]);
-        setFormData({ nombre: "", versiculo_id: "", rol: "usuario" });
+        if (editingReto) {
+          setRetos((prev) =>
+            prev.map((r) => (r.id === editingReto.id ? data.data! : r))
+          );
+          setSuccessMessage("¡Reto actualizado exitosamente!");
+        } else {
+          setRetos((prev) => [...prev, data.data!]);
+          setSuccessMessage("¡Reto creado exitosamente!");
+        }
+
+        setFormData({
+          titulo: "",
+          descripcion: "",
+          fecha_inicio: new Date(),
+          fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          activo: true,
+        });
         setShowForm(false);
-        setSuccessMessage("¡Usuario creado exitosamente!");
+        setEditingReto(null);
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        throw new Error(data.error || "Error al crear usuario");
+        throw new Error(data.error || "Error al guardar reto");
       }
     } catch (err) {
-      console.error("Error creating usuario:", err);
+      console.error("Error saving reto:", err);
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (id: string, nombre: string) => {
+  const handleEditReto = (reto: Reto) => {
+    setEditingReto(reto);
+    setFormData({
+      titulo: reto.titulo,
+      descripcion: reto.descripcion,
+      fecha_inicio: reto.fecha_inicio,
+      fecha_fin: reto.fecha_fin,
+      activo: reto.activo,
+    });
+    setShowForm(true);
+  };
+
+  const handleDeleteReto = async (id: string, titulo: string) => {
     if (
-      !confirm(`¿Estás seguro de que quieres eliminar al usuario "${nombre}"?`)
+      !confirm(`¿Estás seguro de que quieres eliminar el reto "${titulo}"?`)
     ) {
       return;
     }
@@ -141,71 +173,35 @@ export default function AdminUsuariosPage() {
     try {
       setError(null);
 
-      const response = await fetch(`/api/auth/usuarios?id=${id}`, {
+      const response = await fetch(`/api/retos/${id}`, {
         method: "DELETE",
       });
 
       const data: ApiResponse = await response.json();
 
       if (data.success) {
-        setUsuarios((prev) => prev.filter((u) => u.id !== id));
-        setSuccessMessage("¡Usuario eliminado exitosamente!");
+        setRetos((prev) => prev.filter((r) => r.id !== id));
+        setSuccessMessage("¡Reto eliminado exitosamente!");
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        throw new Error(data.error || "Error al eliminar usuario");
+        throw new Error(data.error || "Error al eliminar reto");
       }
     } catch (err) {
-      console.error("Error deleting usuario:", err);
+      console.error("Error deleting reto:", err);
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handlePuntuacionChange = (userId: string, value: string) => {
-    const puntuacion = parseInt(value) || 0;
-    setEditingPuntuacion((prev) => ({
-      ...prev,
-      [userId]: puntuacion,
-    }));
-  };
-
-  const handleUpdatePuntuacion = async (userId: string, nombre: string) => {
-    const nuevaPuntuacion = editingPuntuacion[userId];
-    if (nuevaPuntuacion === undefined) return;
-
-    setUpdatingPuntuacion(userId);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/usuarios/${userId}/puntuacion`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ puntuacion: nuevaPuntuacion }),
-      });
-
-      const data: ApiResponse<Usuario> = await response.json();
-
-      if (data.success && data.data) {
-        setUsuarios((prev) =>
-          prev.map((u) => (u.id === userId ? data.data! : u))
-        );
-        setEditingPuntuacion((prev) => {
-          const newState = { ...prev };
-          delete newState[userId];
-          return newState;
-        });
-        setSuccessMessage(`¡Puntuación de ${nombre} actualizada exitosamente!`);
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } else {
-        throw new Error(data.error || "Error al actualizar puntuación");
-      }
-    } catch (err) {
-      console.error("Error updating puntuacion:", err);
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setUpdatingPuntuacion(null);
-    }
+  const handleCancelEdit = () => {
+    setShowForm(false);
+    setEditingReto(null);
+    setFormData({
+      titulo: "",
+      descripcion: "",
+      fecha_inicio: new Date(),
+      fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      activo: true,
+    });
   };
 
   if (isLoading || loading) {
@@ -231,30 +227,24 @@ export default function AdminUsuariosPage() {
           <div className="flex flex-col lg:flex-row justify-between items-center py-4 lg:py-6 gap-4 lg:gap-0">
             <div className="text-center lg:text-left">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-2 bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                👥 Gestión de Usuarios
+                🎯 Gestión de Retos Semanales
               </h1>
               <p className="text-sm sm:text-base lg:text-lg text-purple-100 font-medium">
-                🔧 Administra los usuarios del sistema
+                📅 Crea y administra retos para los usuarios
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="px-4 py-2 lg:px-6 lg:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl lg:rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 font-bold text-sm lg:text-lg"
               >
-                ➕ Nuevo Usuario
+                ➕ Nuevo Reto
               </button>
               <a
-                href="/admin/retos"
-                className="px-4 py-2 lg:px-6 lg:py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl lg:rounded-2xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 font-bold text-sm lg:text-lg"
-              >
-                🎯 Gestionar Retos
-              </a>
-              <a
-                href="/admin/mapa"
+                href="/admin/usuarios"
                 className="px-4 py-2 lg:px-6 lg:py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl lg:rounded-2xl hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 font-bold text-sm lg:text-lg"
               >
-                🗺️ Editar Mapa
+                👥 Gestionar Usuarios
               </a>
             </div>
           </div>
@@ -303,113 +293,131 @@ export default function AdminUsuariosPage() {
           </div>
         )}
 
-        {/* Formulario de nuevo usuario */}
+        {/* Formulario de nuevo/editar reto */}
         {showForm && (
           <div className="mb-8 bg-gradient-to-br from-white via-green-50 to-emerald-50 rounded-3xl shadow-2xl border-4 border-green-200 p-6">
             <h2 className="text-2xl font-black text-green-800 mb-6">
-              ➕ Crear Nuevo Usuario
+              {editingReto ? "✏️ Editar Reto" : "➕ Crear Nuevo Reto"}
             </h2>
 
             <form
               onSubmit={handleSubmit}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-              <div>
+              <div className="md:col-span-2">
                 <label
-                  htmlFor="nombre"
+                  htmlFor="titulo"
                   className="block text-sm font-bold text-gray-700 mb-2"
                 >
-                  👤 Nombre
+                  📝 Título del Reto
                 </label>
                 <input
                   type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formData.nombre}
+                  id="titulo"
+                  name="titulo"
+                  value={formData.titulo}
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors"
-                  placeholder="Ej: maria_garcia, juan_perez"
-                  disabled={submitting}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="versiculo_id"
-                  className="block text-sm font-bold text-gray-700 mb-2"
-                >
-                  📜 Versículo ID
-                </label>
-                <input
-                  type="text"
-                  id="versiculo_id"
-                  name="versiculo_id"
-                  value={formData.versiculo_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors"
-                  placeholder="Ej: juan316, mateo2819, salmo231"
+                  placeholder="Ej: Lectura Diaria de la Biblia"
                   disabled={submitting}
                 />
               </div>
 
               <div className="md:col-span-2">
                 <label
-                  htmlFor="rol"
+                  htmlFor="descripcion"
                   className="block text-sm font-bold text-gray-700 mb-2"
                 >
-                  👑 Rol
+                  📖 Descripción
                 </label>
-                <select
-                  id="rol"
-                  name="rol"
-                  value={formData.rol}
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
                   onChange={handleInputChange}
+                  required
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors resize-none"
+                  placeholder="Describe el reto en detalle..."
+                  disabled={submitting}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="fecha_inicio"
+                  className="block text-sm font-bold text-gray-700 mb-2"
+                >
+                  📅 Fecha de Inicio
+                </label>
+                <input
+                  type="date"
+                  id="fecha_inicio"
+                  value={formData.fecha_inicio.toISOString().split("T")[0]}
+                  onChange={(e) =>
+                    handleDateChange("fecha_inicio", e.target.value)
+                  }
+                  required
                   className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors"
                   disabled={submitting}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="fecha_fin"
+                  className="block text-sm font-bold text-gray-700 mb-2"
                 >
-                  <option value="usuario">👤 Usuario</option>
-                  <option value="admin">👑 Administrador</option>
-                </select>
+                  📅 Fecha de Fin
+                </label>
+                <input
+                  type="date"
+                  id="fecha_fin"
+                  value={formData.fecha_fin.toISOString().split("T")[0]}
+                  onChange={(e) =>
+                    handleDateChange("fecha_fin", e.target.value)
+                  }
+                  required
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors"
+                  disabled={submitting}
+                />
               </div>
 
               <div className="md:col-span-2">
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
-                  <h4 className="font-bold text-blue-800 mb-2">
-                    💡 Información importante:
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>
-                      • El <strong>nombre</strong> será usado para el login del
-                      usuario
-                    </li>
-                    <li>
-                      • El <strong>versículo ID</strong> será la contraseña del
-                      usuario
-                    </li>
-                    <li>
-                      • Los <strong>administradores</strong> pueden editar
-                      principios y gestionar usuarios
-                    </li>
-                    <li>
-                      • Los <strong>usuarios</strong> solo pueden ver los
-                      principios del camino
-                    </li>
-                  </ul>
-                </div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="activo"
+                    checked={formData.activo}
+                    onChange={handleInputChange}
+                    className="mr-3 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    disabled={submitting}
+                  />
+                  <span className="text-sm font-bold text-gray-700">
+                    ✅ Reto Activo
+                  </span>
+                </label>
+              </div>
 
+              <div className="md:col-span-2">
                 <div className="flex gap-4">
                   <button
                     type="submit"
                     disabled={submitting}
                     className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105 shadow-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    {submitting ? "Creando..." : "✅ Crear Usuario"}
+                    {submitting
+                      ? editingReto
+                        ? "Actualizando..."
+                        : "Creando..."
+                      : editingReto
+                      ? "✅ Actualizar Reto"
+                      : "✅ Crear Reto"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowForm(false)}
+                    onClick={handleCancelEdit}
                     className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-2xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-bold"
                   >
                     ❌ Cancelar
@@ -420,105 +428,83 @@ export default function AdminUsuariosPage() {
           </div>
         )}
 
-        {/* Lista de usuarios */}
+        {/* Lista de retos */}
         <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-3xl shadow-2xl border-4 border-purple-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-black text-purple-800">
-              👥 Usuarios Registrados
+              🎯 Retos Registrados
             </h2>
             <div className="text-sm text-purple-600 font-medium">
-              Total: {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""}
+              Total: {retos.length} reto{retos.length !== 1 ? "s" : ""}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {usuarios.map((usuario) => (
+            {retos.map((reto) => (
               <div
-                key={usuario.id}
+                key={reto.id}
                 className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-4 border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">
-                      {usuario.rol === "admin" ? "👑" : "👤"}
-                    </span>
+                    <span className="text-2xl">🎯</span>
                     <span className="font-bold text-gray-800">
-                      {usuario.nombre}
+                      {reto.titulo}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        usuario.rol === "admin"
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                          : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+                        reto.activo
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                          : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
                       }`}
                     >
-                      {usuario.rol}
+                      {reto.activo ? "Activo" : "Inactivo"}
                     </span>
-                    {usuario.nombre !== "admin" && (
-                      <button
-                        onClick={() =>
-                          handleDeleteUser(usuario.id, usuario.nombre)
-                        }
-                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
-                        title="Eliminar usuario"
-                      >
-                        🗑️
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleEditReto(reto)}
+                      className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                      title="Editar reto"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteReto(reto.id, reto.titulo)}
+                      className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+                      title="Eliminar reto"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
-                <div className="text-sm text-gray-600 space-y-2">
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p className="line-clamp-2">{reto.descripcion}</p>
                   <p>
-                    <strong>📜 Versículo ID:</strong> {usuario.versiculo_id}
+                    <strong>📅 Inicio:</strong>{" "}
+                    {new Date(reto.fecha_inicio).toLocaleDateString()}
                   </p>
-                  <div className="flex items-center gap-2">
-                    <strong>🏆 Puntuación:</strong>
-                    <input
-                      type="number"
-                      min="0"
-                      value={
-                        editingPuntuacion[usuario.id] !== undefined
-                          ? editingPuntuacion[usuario.id]
-                          : usuario.puntuacion
-                      }
-                      onChange={(e) =>
-                        handlePuntuacionChange(usuario.id, e.target.value)
-                      }
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                      disabled={updatingPuntuacion === usuario.id}
-                    />
-                    {editingPuntuacion[usuario.id] !== undefined &&
-                      editingPuntuacion[usuario.id] !== usuario.puntuacion && (
-                        <button
-                          onClick={() =>
-                            handleUpdatePuntuacion(usuario.id, usuario.nombre)
-                          }
-                          disabled={updatingPuntuacion === usuario.id}
-                          className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
-                        >
-                          {updatingPuntuacion === usuario.id ? "..." : "💾"}
-                        </button>
-                      )}
-                  </div>
                   <p>
-                    <strong>📅 Creado:</strong>{" "}
-                    {new Date(usuario.createdAt).toLocaleDateString()}
+                    <strong>📅 Fin:</strong>{" "}
+                    {new Date(reto.fecha_fin).toLocaleDateString()}
+                  </p>
+                  <p>
+                    <strong>📆 Creado:</strong>{" "}
+                    {new Date(reto.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))}
           </div>
 
-          {usuarios.length === 0 && (
+          {retos.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">👥</div>
+              <div className="text-6xl mb-4">🎯</div>
               <p className="text-xl font-bold text-gray-600 mb-2">
-                No hay usuarios registrados
+                No hay retos registrados
               </p>
               <p className="text-gray-500">
-                Crea el primer usuario usando el botón &quot;Nuevo Usuario&quot;
+                Crea el primer reto usando el botón "Nuevo Reto"
               </p>
             </div>
           )}

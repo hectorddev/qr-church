@@ -48,6 +48,18 @@ export interface UsuarioDB {
   nombre: string;
   versiculo_id: string;
   rol: "admin" | "usuario";
+  puntuacion: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RetoDB {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  activo: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -171,18 +183,42 @@ export async function initializeExampleData() {
         nombre: "admin",
         versiculo_id: "juan316",
         rol: "admin",
+        puntuacion: 0,
       },
       {
         id: "user_2",
         nombre: "usuario1",
         versiculo_id: "mateo2819",
         rol: "usuario",
+        puntuacion: 150,
       },
       {
         id: "user_3",
         nombre: "usuario2",
         versiculo_id: "salmo231",
         rol: "usuario",
+        puntuacion: 200,
+      },
+    ];
+
+    // Insertar retos de ejemplo
+    const exampleRetos = [
+      {
+        id: "reto_1",
+        titulo: "Lectura Diaria de la Biblia",
+        descripcion:
+          "Lee al menos un capítulo de la Biblia cada día durante esta semana",
+        fecha_inicio: new Date().toISOString(),
+        fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días desde ahora
+        activo: true,
+      },
+      {
+        id: "reto_2",
+        titulo: "Oración Matutina",
+        descripcion: "Dedica 15 minutos cada mañana a la oración personal",
+        fecha_inicio: new Date().toISOString(),
+        fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        activo: true,
       },
     ];
 
@@ -210,6 +246,19 @@ export async function initializeExampleData() {
       throw usuariosError;
     } else {
       console.log("✅ Usuarios insertados correctamente");
+    }
+
+    // Insertar retos
+    console.log("🎯 Insertando retos de ejemplo...");
+    const { error: retosError } = await supabase
+      .from("retos")
+      .insert(exampleRetos);
+
+    if (retosError) {
+      console.error("❌ Error insertando retos:", retosError);
+      throw retosError;
+    } else {
+      console.log("✅ Retos insertados correctamente");
     }
 
     console.log("✅ Datos de ejemplo inicializados correctamente");

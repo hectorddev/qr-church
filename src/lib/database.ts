@@ -1,5 +1,12 @@
 // Configuración de base de datos para producción y desarrollo
-import { CrearPuntoData, PuntoMapa } from "./types";
+import {
+  CrearPuntoData,
+  CrearRetoData,
+  CrearUsuarioData,
+  PuntoMapa,
+  Reto,
+  Usuario,
+} from "./types";
 
 // Configuración de base de datos
 const isProduction = process.env.NODE_ENV === "production";
@@ -192,11 +199,300 @@ class SupabaseDatabase {
     console.log("Todos los puntos eliminados de Supabase");
     return 0; // Supabase no retorna el count
   }
+
+  // Métodos para usuarios
+  async crearUsuario(data: CrearUsuarioData): Promise<Usuario> {
+    const supabase = await this.getSupabase();
+    const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const nuevoUsuario: Usuario = {
+      id,
+      ...data,
+      puntuacion: data.puntuacion || 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const { error } = await supabase.from("usuarios").insert([
+      {
+        id,
+        nombre: data.nombre,
+        versiculo_id: data.versiculo_id,
+        rol: data.rol,
+        puntuacion: data.puntuacion || 0,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error creando usuario en Supabase:", error);
+      throw error;
+    }
+
+    console.log("Usuario creado en Supabase:", nuevoUsuario);
+    return nuevoUsuario;
+  }
+
+  async obtenerUsuarios(): Promise<Usuario[]> {
+    const supabase = await this.getSupabase();
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("id,nombre,versiculo_id,rol,puntuacion,created_at,updated_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error obteniendo usuarios de Supabase:", error);
+      throw error;
+    }
+
+    return data.map((row: any) => ({
+      id: row.id,
+      nombre: row.nombre,
+      versiculo_id: row.versiculo_id,
+      rol: row.rol,
+      puntuacion: row.puntuacion || 0,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }));
+  }
+
+  async obtenerUsuario(id: string): Promise<Usuario | null> {
+    const supabase = await this.getSupabase();
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("id,nombre,versiculo_id,rol,puntuacion,created_at,updated_at")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null; // No encontrado
+      console.error("Error obteniendo usuario de Supabase:", error);
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      nombre: data.nombre,
+      versiculo_id: data.versiculo_id,
+      rol: data.rol,
+      puntuacion: data.puntuacion || 0,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+    };
+  }
+
+  async actualizarUsuario(
+    id: string,
+    data: Partial<CrearUsuarioData>
+  ): Promise<Usuario | null> {
+    const supabase = await this.getSupabase();
+
+    const updateData: any = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
+    });
+
+    if (Object.keys(updateData).length === 0) return null;
+
+    const { error } = await supabase
+      .from("usuarios")
+      .update(updateData)
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error actualizando usuario en Supabase:", error);
+      throw error;
+    }
+
+    return await this.obtenerUsuario(id);
+  }
+
+  async actualizarPuntuacionUsuario(
+    id: string,
+    puntuacion: number
+  ): Promise<Usuario | null> {
+    return await this.actualizarUsuario(id, { puntuacion });
+  }
+
+  async eliminarUsuario(id: string): Promise<boolean> {
+    const supabase = await this.getSupabase();
+    const { error } = await supabase.from("usuarios").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error eliminando usuario de Supabase:", error);
+      throw error;
+    }
+
+    console.log("Usuario eliminado de Supabase:", id);
+    return true;
+  }
+
+  // Métodos para retos
+  async crearReto(data: CrearRetoData): Promise<Reto> {
+    const supabase = await this.getSupabase();
+    const id = `reto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const nuevoReto: Reto = {
+      id,
+      ...data,
+      activo: data.activo !== undefined ? data.activo : true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const { error } = await supabase.from("retos").insert([
+      {
+        id,
+        titulo: data.titulo,
+        descripcion: data.descripcion,
+        fecha_inicio: data.fecha_inicio.toISOString(),
+        fecha_fin: data.fecha_fin.toISOString(),
+        activo: data.activo !== undefined ? data.activo : true,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error creando reto en Supabase:", error);
+      throw error;
+    }
+
+    console.log("Reto creado en Supabase:", nuevoReto);
+    return nuevoReto;
+  }
+
+  async obtenerRetos(): Promise<Reto[]> {
+    const supabase = await this.getSupabase();
+    const { data, error } = await supabase
+      .from("retos")
+      .select(
+        "id,titulo,descripcion,fecha_inicio,fecha_fin,activo,created_at,updated_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error obteniendo retos de Supabase:", error);
+      throw error;
+    }
+
+    return data.map((row: any) => ({
+      id: row.id,
+      titulo: row.titulo,
+      descripcion: row.descripcion,
+      fecha_inicio: new Date(row.fecha_inicio),
+      fecha_fin: new Date(row.fecha_fin),
+      activo: row.activo,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }));
+  }
+
+  async obtenerRetosActivos(): Promise<Reto[]> {
+    const supabase = await this.getSupabase();
+    const { data, error } = await supabase
+      .from("retos")
+      .select(
+        "id,titulo,descripcion,fecha_inicio,fecha_fin,activo,created_at,updated_at"
+      )
+      .eq("activo", true)
+      .order("fecha_inicio", { ascending: true });
+
+    if (error) {
+      console.error("Error obteniendo retos activos de Supabase:", error);
+      throw error;
+    }
+
+    return data.map((row: any) => ({
+      id: row.id,
+      titulo: row.titulo,
+      descripcion: row.descripcion,
+      fecha_inicio: new Date(row.fecha_inicio),
+      fecha_fin: new Date(row.fecha_fin),
+      activo: row.activo,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }));
+  }
+
+  async obtenerReto(id: string): Promise<Reto | null> {
+    const supabase = await this.getSupabase();
+    const { data, error } = await supabase
+      .from("retos")
+      .select(
+        "id,titulo,descripcion,fecha_inicio,fecha_fin,activo,created_at,updated_at"
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null; // No encontrado
+      console.error("Error obteniendo reto de Supabase:", error);
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      fecha_inicio: new Date(data.fecha_inicio),
+      fecha_fin: new Date(data.fecha_fin),
+      activo: data.activo,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+    };
+  }
+
+  async actualizarReto(
+    id: string,
+    data: Partial<CrearRetoData>
+  ): Promise<Reto | null> {
+    const supabase = await this.getSupabase();
+
+    const updateData: any = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === "fecha_inicio" || key === "fecha_fin") {
+          updateData[key] = (value as Date).toISOString();
+        } else {
+          updateData[key] = value;
+        }
+      }
+    });
+
+    if (Object.keys(updateData).length === 0) return null;
+
+    const { error } = await supabase
+      .from("retos")
+      .update(updateData)
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error actualizando reto en Supabase:", error);
+      throw error;
+    }
+
+    return await this.obtenerReto(id);
+  }
+
+  async eliminarReto(id: string): Promise<boolean> {
+    const supabase = await this.getSupabase();
+    const { error } = await supabase.from("retos").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error eliminando reto de Supabase:", error);
+      throw error;
+    }
+
+    console.log("Reto eliminado de Supabase:", id);
+    return true;
+  }
 }
 
 // Base de datos en memoria para desarrollo (temporal)
 class InMemoryDatabase {
   private puntos: PuntoMapa[] = [];
+  private usuarios: Usuario[] = [];
+  private retos: Reto[] = [];
   private nextId = 1;
 
   async crearPunto(data: CrearPuntoData): Promise<PuntoMapa> {
@@ -245,6 +541,101 @@ class InMemoryDatabase {
     const count = this.puntos.length;
     this.puntos = [];
     return count;
+  }
+
+  // Implementaciones básicas para usuarios (solo para desarrollo)
+  async crearUsuario(data: CrearUsuarioData): Promise<Usuario> {
+    const nuevoUsuario: Usuario = {
+      id: `user_${this.nextId++}`,
+      ...data,
+      puntuacion: data.puntuacion || 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.usuarios.push(nuevoUsuario);
+    return nuevoUsuario;
+  }
+
+  async obtenerUsuarios(): Promise<Usuario[]> {
+    return [...this.usuarios];
+  }
+
+  async obtenerUsuario(id: string): Promise<Usuario | null> {
+    return this.usuarios.find((u) => u.id === id) || null;
+  }
+
+  async actualizarUsuario(
+    id: string,
+    data: Partial<CrearUsuarioData>
+  ): Promise<Usuario | null> {
+    const index = this.usuarios.findIndex((u) => u.id === id);
+    if (index === -1) return null;
+    this.usuarios[index] = {
+      ...this.usuarios[index],
+      ...data,
+      updatedAt: new Date(),
+    };
+    return this.usuarios[index];
+  }
+
+  async actualizarPuntuacionUsuario(
+    id: string,
+    puntuacion: number
+  ): Promise<Usuario | null> {
+    return this.actualizarUsuario(id, { puntuacion });
+  }
+
+  async eliminarUsuario(id: string): Promise<boolean> {
+    const index = this.usuarios.findIndex((u) => u.id === id);
+    if (index === -1) return false;
+    this.usuarios.splice(index, 1);
+    return true;
+  }
+
+  // Implementaciones básicas para retos (solo para desarrollo)
+  async crearReto(data: CrearRetoData): Promise<Reto> {
+    const nuevoReto: Reto = {
+      id: `reto_${this.nextId++}`,
+      ...data,
+      activo: data.activo !== undefined ? data.activo : true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.retos.push(nuevoReto);
+    return nuevoReto;
+  }
+
+  async obtenerRetos(): Promise<Reto[]> {
+    return [...this.retos];
+  }
+
+  async obtenerRetosActivos(): Promise<Reto[]> {
+    return this.retos.filter((r) => r.activo);
+  }
+
+  async obtenerReto(id: string): Promise<Reto | null> {
+    return this.retos.find((r) => r.id === id) || null;
+  }
+
+  async actualizarReto(
+    id: string,
+    data: Partial<CrearRetoData>
+  ): Promise<Reto | null> {
+    const index = this.retos.findIndex((r) => r.id === id);
+    if (index === -1) return null;
+    this.retos[index] = {
+      ...this.retos[index],
+      ...data,
+      updatedAt: new Date(),
+    };
+    return this.retos[index];
+  }
+
+  async eliminarReto(id: string): Promise<boolean> {
+    const index = this.retos.findIndex((r) => r.id === id);
+    if (index === -1) return false;
+    this.retos.splice(index, 1);
+    return true;
   }
 }
 
@@ -399,4 +790,72 @@ export async function eliminarPunto(id: string) {
 export async function eliminarTodosPuntos() {
   const database = getDatabase();
   return await database.eliminarTodosPuntos();
+}
+
+// Funciones helper para usuarios
+export async function crearUsuario(data: CrearUsuarioData) {
+  const database = getDatabase();
+  return await database.crearUsuario(data);
+}
+
+export async function obtenerUsuarios() {
+  const database = getDatabase();
+  return await database.obtenerUsuarios();
+}
+
+export async function obtenerUsuario(id: string) {
+  const database = getDatabase();
+  return await database.obtenerUsuario(id);
+}
+
+export async function actualizarUsuario(
+  id: string,
+  data: Partial<CrearUsuarioData>
+) {
+  const database = getDatabase();
+  return await database.actualizarUsuario(id, data);
+}
+
+export async function actualizarPuntuacionUsuario(
+  id: string,
+  puntuacion: number
+) {
+  const database = getDatabase();
+  return await database.actualizarPuntuacionUsuario(id, puntuacion);
+}
+
+export async function eliminarUsuario(id: string) {
+  const database = getDatabase();
+  return await database.eliminarUsuario(id);
+}
+
+// Funciones helper para retos
+export async function crearReto(data: CrearRetoData) {
+  const database = getDatabase();
+  return await database.crearReto(data);
+}
+
+export async function obtenerRetos() {
+  const database = getDatabase();
+  return await database.obtenerRetos();
+}
+
+export async function obtenerRetosActivos() {
+  const database = getDatabase();
+  return await database.obtenerRetosActivos();
+}
+
+export async function obtenerReto(id: string) {
+  const database = getDatabase();
+  return await database.obtenerReto(id);
+}
+
+export async function actualizarReto(id: string, data: Partial<CrearRetoData>) {
+  const database = getDatabase();
+  return await database.actualizarReto(id, data);
+}
+
+export async function eliminarReto(id: string) {
+  const database = getDatabase();
+  return await database.eliminarReto(id);
 }
