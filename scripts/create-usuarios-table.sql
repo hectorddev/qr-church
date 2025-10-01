@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_created_at ON usuarios(created_at);
 -- IMPORTANTE: Asegúrate de que NO exista una tabla 'retos' previa con tipos incorrectos
 -- Si existe, elimínala primero con: DROP TABLE retos;
 CREATE TABLE IF NOT EXISTS retos (
-  id VARCHAR(255) PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   titulo VARCHAR(255) NOT NULL,
   descripcion TEXT,
   fecha_inicio TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -48,7 +48,7 @@ WHERE NOT EXISTS (SELECT 1 FROM usuarios LIMIT 1);
 -- Insertar retos de ejemplo (solo si la tabla está vacía)
 INSERT INTO retos (id, titulo, descripcion, fecha_inicio, fecha_fin, activo)
 SELECT * FROM (VALUES
-  ('reto_1', 'Lectura Diaria de la Biblia', 'Lee al menos un capítulo de la Biblia cada día durante esta semana', NOW(), NOW() + INTERVAL '7 days', true),
-  ('reto_2', 'Oración Matutina', 'Dedica 15 minutos cada mañana a la oración personal', NOW(), NOW() + INTERVAL '7 days', true)
+  (1730332800000, 'Lectura Diaria de la Biblia', 'Lee al menos un capítulo de la Biblia cada día durante esta semana', NOW(), NOW() + INTERVAL '7 days', true),
+  (1730332800001, 'Oración Matutina', 'Dedica 15 minutos cada mañana a la oración personal', NOW(), NOW() + INTERVAL '7 days', true)
 ) AS v(id, titulo, descripcion, fecha_inicio, fecha_fin, activo)
 WHERE NOT EXISTS (SELECT 1 FROM retos LIMIT 1);

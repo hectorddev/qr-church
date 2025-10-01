@@ -350,10 +350,10 @@ class SupabaseDatabase {
   // Métodos para retos
   async crearReto(data: CrearRetoData): Promise<Reto> {
     const supabase = await this.getSupabase();
-    const id = `reto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = Date.now(); // Usar timestamp numérico para BIGINT
 
     const nuevoReto: Reto = {
-      id,
+      id: id.toString(), // Convertir a string para mantener consistencia en el tipo Reto
       ...data,
       activo: data.activo !== undefined ? data.activo : true,
       createdAt: new Date(),
@@ -362,7 +362,7 @@ class SupabaseDatabase {
 
     const { error } = await supabase.from("retos").insert([
       {
-        id,
+        id, // Enviar como número para BIGINT
         titulo: data.titulo,
         descripcion: data.descripcion,
         fecha_inicio: data.fecha_inicio.toISOString(),
