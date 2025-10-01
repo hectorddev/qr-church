@@ -36,6 +36,11 @@ CREATE INDEX IF NOT EXISTS idx_retos_activo ON retos(activo);
 CREATE INDEX IF NOT EXISTS idx_retos_fecha_inicio ON retos(fecha_inicio);
 CREATE INDEX IF NOT EXISTS idx_retos_created_at ON retos(created_at);
 
+-- Deshabilitar Row Level Security para acceso con clave anónima
+ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
+ALTER TABLE retos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE puntos DISABLE ROW LEVEL SECURITY;
+
 -- Insertar usuarios de ejemplo (solo si la tabla está vacía)
 INSERT INTO usuarios (id, nombre, versiculo_id, rol, puntuacion)
 SELECT * FROM (VALUES
