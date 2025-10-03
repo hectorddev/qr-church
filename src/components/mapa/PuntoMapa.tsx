@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { PuntoMapa as PuntoMapaType } from '@/lib/types';
+import { PuntoMapa as PuntoMapaType } from "@/lib/types";
+import React, { useState } from "react";
 
 interface PuntoMapaProps {
   punto: PuntoMapaType;
@@ -18,17 +18,41 @@ export default function PuntoMapa({
   isSelected = false,
   onClick,
   onEdit,
-  onDelete
+  onDelete,
 }: PuntoMapaProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<
+    "top" | "bottom" | "left" | "right"
+  >("top");
 
   // Usar el emoji del punto directamente
-  const displayIcon = punto.emoji || '📍';
+  const displayIcon = punto.emoji || "📍";
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick?.(punto);
+  };
+
+  const handleMouseEnter = () => {
+    setShowTooltip(true);
+    // Determinar la mejor posición del tooltip basada en la coordenada del punto
+    const x = punto.x;
+    const y = punto.y;
+
+    if (x < 20) {
+      // Punto cerca del borde izquierdo
+      setTooltipPosition("right");
+    } else if (x > 80) {
+      // Punto cerca del borde derecho
+      setTooltipPosition("left");
+    } else if (y < 20) {
+      // Punto cerca del borde superior
+      setTooltipPosition("bottom");
+    } else {
+      // Punto en el centro o cerca del borde inferior
+      setTooltipPosition("top");
+    }
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -50,14 +74,18 @@ export default function PuntoMapa({
         className={`
           relative w-8 h-8 rounded-full border-4 border-white shadow-2xl cursor-pointer
           transition-all duration-300 hover:scale-150 hover:rotate-12
-          ${isSelected ? 'ring-4 ring-purple-400 ring-opacity-50 animate-pulse' : ''}
+          ${
+            isSelected
+              ? "ring-4 ring-purple-400 ring-opacity-50 animate-pulse"
+              : ""
+          }
         `}
         style={{
-          backgroundColor: '#8b5cf6', // Color púrpura por defecto
-          boxShadow: '0 0 20px #8b5cf640, 0 0 40px #8b5cf620'
+          backgroundColor: "#8b5cf6", // Color púrpura por defecto
+          boxShadow: "0 0 20px #8b5cf640, 0 0 40px #8b5cf620",
         }}
         onClick={handleClick}
-        onMouseEnter={() => setShowTooltip(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setShowTooltip(false)}
         onMouseOver={() => setShowActions(true)}
         onMouseOut={() => setShowActions(false)}
@@ -73,18 +101,40 @@ export default function PuntoMapa({
         )}
       </div>
 
-      {/* Tooltip con información */}
+      {/* Tooltip con información - Posicionamiento dinámico */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 z-20">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl whitespace-nowrap border-2 border-white">
+        <div
+          className={`absolute z-20 ${
+            tooltipPosition === "top"
+              ? "bottom-full left-1/2 transform -translate-x-1/2 mb-3"
+              : tooltipPosition === "bottom"
+              ? "top-full left-1/2 transform -translate-x-1/2 mt-3"
+              : tooltipPosition === "left"
+              ? "right-full top-1/2 transform -translate-y-1/2 mr-3"
+              : "left-full top-1/2 transform -translate-y-1/2 ml-3"
+          }`}
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl border-2 border-white max-w-xs">
             <div className="font-black text-lg">{punto.nombre}</div>
-            <div className="text-purple-100 font-bold">{displayIcon} {punto.pointerName}</div>
+            <div className="text-purple-100 font-bold">
+              {displayIcon} {punto.pointerName}
+            </div>
             {punto.año && (
-              <div className="text-purple-200 text-xs">{punto.año}</div>
+              <div className="text-purple-200 text-xs mt-1">{punto.año}</div>
             )}
           </div>
-          {/* Flecha del tooltip */}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-purple-600" />
+          {/* Flecha del tooltip - ajustada según posición */}
+          <div
+            className={`absolute w-0 h-0 border-6 border-transparent ${
+              tooltipPosition === "top"
+                ? "top-full left-1/2 transform -translate-x-1/2 border-t-purple-600"
+                : tooltipPosition === "bottom"
+                ? "bottom-full left-1/2 transform -translate-x-1/2 border-b-purple-600"
+                : tooltipPosition === "left"
+                ? "left-full top-1/2 transform -translate-y-1/2 border-l-purple-600"
+                : "right-full top-1/2 transform -translate-y-1/2 border-r-purple-600"
+            }`}
+          />
         </div>
       )}
 
@@ -106,15 +156,6 @@ export default function PuntoMapa({
             >
               🗑️
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Etiqueta del punto - solo visible en hover */}
-      {showTooltip && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-10">
-          <div className="bg-gradient-to-r from-white to-purple-50 text-gray-800 text-sm px-3 py-2 rounded-2xl shadow-lg border-2 border-purple-200 whitespace-nowrap font-bold">
-            {punto.nombre}
           </div>
         </div>
       )}
