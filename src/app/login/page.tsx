@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { LoginData } from '@/lib/types';
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginData } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState<LoginData>({
-    nombre: '',
-    versiculo_id: ''
+    nombre: "",
+    versiculo_id: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
   // Redirigir si ya está autenticado
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.push('/mapa');
+      router.push("/mapa");
     }
   }, [isAuthenticated, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Limpiar error cuando el usuario empiece a escribir
     if (error) setError(null);
@@ -40,14 +40,14 @@ export default function LoginPage() {
 
     try {
       const result = await login(formData);
-      
+
       if (result.success) {
-        router.push('/mapa');
+        router.push("/mapa");
       } else {
-        setError(result.error || 'Credenciales incorrectas');
+        setError(result.error || "Credenciales incorrectas");
       }
     } catch (error) {
-      setError('Error inesperado. Intenta nuevamente.');
+      setError("Error inesperado. Intenta nuevamente.");
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +75,10 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Campo Nombre */}
             <div>
-              <label htmlFor="nombre" className="block text-sm font-bold text-gray-700 mb-2">
+              <label
+                htmlFor="nombre"
+                className="block text-sm font-bold text-gray-700 mb-2"
+              >
                 👤 Nombre
               </label>
               <input
@@ -93,7 +96,10 @@ export default function LoginPage() {
 
             {/* Campo Versículo ID */}
             <div>
-              <label htmlFor="versiculo_id" className="block text-sm font-bold text-gray-700 mb-2">
+              <label
+                htmlFor="versiculo_id"
+                className="block text-sm font-bold text-gray-700 mb-2"
+              >
                 📜 Versículo ID
               </label>
               <input
@@ -131,7 +137,7 @@ export default function LoginPage() {
                   Iniciando sesión...
                 </div>
               ) : (
-                '🚀 Iniciar Sesión'
+                "🚀 Iniciar Sesión"
               )}
             </button>
           </form>
@@ -146,9 +152,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-sm text-purple-600">
-            &copy; 2024 Iglesia QR - Principios del Camino
-          </p>
+          <p className="text-sm text-purple-600">&copy; 2025 - Pampanos</p>
         </div>
       </div>
     </div>

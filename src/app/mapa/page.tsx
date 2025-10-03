@@ -441,7 +441,7 @@ export default function MapaPage() {
               Principios del Camino
             </p>
             <p className="text-xs sm:text-sm text-purple-500 mt-1 sm:mt-2">
-              &copy; 2025 - Transformando vidas a través de la Palabra
+              &copy; 2025 - Pampanos
             </p>
           </div>
         </div>
