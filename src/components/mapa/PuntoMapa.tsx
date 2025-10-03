@@ -57,7 +57,7 @@ export default function PuntoMapa({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault(); // Prevenir comportamiento por defecto
-    handleMouseEnter(); // Reutilizar lógica de mostrar tooltip
+    // No mostrar tooltip en móvil para evitar repetición con el panel
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
