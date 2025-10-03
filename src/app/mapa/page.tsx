@@ -160,10 +160,10 @@ export default function MapaPage() {
           </div>
         )}
 
-        {/* Modal para móvil */}
+        {/* Modal para móvil - Solo principio y aplicación práctica */}
         {selectedPoint && (
           <div className="fixed inset-0 z-50 xl:hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-2xl shadow-2xl border-4 border-purple-200 p-4 max-h-[80vh] overflow-y-auto w-full max-w-md">
+            <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-2xl shadow-2xl border-4 border-purple-200 p-4 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-black text-purple-800 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   ✨ Principio ✨
@@ -177,7 +177,7 @@ export default function MapaPage() {
               </div>
 
               <div className="space-y-4">
-                {/* Nombre y tipo */}
+                {/* Nombre del principio */}
                 <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-3 border-2 border-purple-200">
                   <h4 className="font-black text-gray-900 text-lg mb-2">
                     {selectedPoint.nombre}
@@ -192,30 +192,6 @@ export default function MapaPage() {
                   </div>
                 </div>
 
-                {/* Descripción */}
-                {selectedPoint.descripcion && (
-                  <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl p-3 border-2 border-blue-200">
-                    <h5 className="font-black text-blue-800 mb-2 text-sm">
-                      📖 Descripción
-                    </h5>
-                    <p className="text-gray-800 leading-relaxed font-medium text-sm">
-                      {selectedPoint.descripcion}
-                    </p>
-                  </div>
-                )}
-
-                {/* Versículos relevantes */}
-                {selectedPoint.referencias && (
-                  <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-3 border-2 border-green-200">
-                    <h5 className="font-black text-green-800 mb-2 text-sm">
-                      📜 Versículos Relevantes
-                    </h5>
-                    <p className="text-gray-800 font-medium text-sm">
-                      {selectedPoint.referencias}
-                    </p>
-                  </div>
-                )}
-
                 {/* Aplicación práctica */}
                 {selectedPoint.año && (
                   <div className="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-xl p-3 border-2 border-orange-200">
@@ -227,16 +203,6 @@ export default function MapaPage() {
                     </p>
                   </div>
                 )}
-
-                {/* Coordenadas */}
-                <div className="bg-gradient-to-r from-gray-100 to-slate-100 rounded-xl p-3 border-2 border-gray-200">
-                  <h5 className="font-black text-gray-800 mb-1 text-sm">
-                    📍 Ubicación
-                  </h5>
-                  <p className="text-gray-600 font-medium text-sm">
-                    {selectedPoint.x.toFixed(1)}%, {selectedPoint.y.toFixed(1)}%
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -255,8 +221,8 @@ export default function MapaPage() {
             </div>
           </div>
 
-          {/* Panel lateral de información - Solo visible en desktop */}
-          <div className="hidden xl:block xl:col-span-2 order-1 xl:order-2">
+          {/* Panel lateral de información */}
+          <div className="xl:col-span-2 order-1 xl:order-2">
             <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl sm:rounded-2xl xl:rounded-3xl shadow-xl xl:shadow-2xl border-2 xl:border-4 border-purple-200 p-3 sm:p-4 xl:p-6 backdrop-blur-sm xl:sticky xl:top-6">
               {selectedPoint ? (
                 <div>
@@ -265,21 +231,6 @@ export default function MapaPage() {
                   </h3>
 
                   <div className="space-y-4 sm:space-y-6">
-                    {/* Nombre y tipo */}
-                    <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-purple-200">
-                      <h4 className="font-black text-gray-900 text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3">
-                        {selectedPoint.nombre}
-                      </h4>
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-xl sm:text-2xl">
-                          {selectedPoint.emoji || "📍"}
-                        </span>
-                        <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">
-                          {selectedPoint.pointerName}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* Descripción */}
                     {selectedPoint.descripcion && (
                       <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-blue-200">
@@ -300,18 +251,6 @@ export default function MapaPage() {
                         </h5>
                         <p className="text-gray-800 font-medium text-sm sm:text-base">
                           {selectedPoint.referencias}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Aplicación práctica */}
-                    {selectedPoint.año && (
-                      <div className="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-orange-200">
-                        <h5 className="font-black text-orange-800 mb-2 sm:mb-3 text-sm sm:text-base md:text-lg">
-                          🎯 Aplicación Práctica
-                        </h5>
-                        <p className="text-gray-800 font-medium text-sm sm:text-base">
-                          {selectedPoint.año}
                         </p>
                       </div>
                     )}
