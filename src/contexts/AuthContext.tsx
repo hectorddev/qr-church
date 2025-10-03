@@ -97,8 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const updateUser = (updatedUser: Usuario) => {
-    setUsuario(updatedUser);
-    localStorage.setItem("usuario", JSON.stringify(updatedUser));
+    const userCopy = { ...updatedUser }; // Crear copia para asegurar re-render
+    setUsuario(userCopy);
+    localStorage.setItem("usuario", JSON.stringify(userCopy));
   };
 
   const value: AuthContextType = {

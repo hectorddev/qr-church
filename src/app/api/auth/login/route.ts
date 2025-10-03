@@ -1,37 +1,6 @@
-import { AuthResponse, LoginData, Usuario } from "@/lib/types";
+import { obtenerUsuarios } from "@/lib/database";
+import { AuthResponse, LoginData } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
-
-// Simulación de base de datos de usuarios
-// En un proyecto real, esto vendría de una base de datos
-const usuarios: Usuario[] = [
-  {
-    id: "1",
-    nombre: "admin",
-    versiculo_id: "juan316",
-    rol: "admin",
-    puntuacion: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    nombre: "usuario1",
-    versiculo_id: "mateo2819",
-    rol: "usuario",
-    puntuacion: 150,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    nombre: "usuario2",
-    versiculo_id: "salmo231",
-    rol: "usuario",
-    puntuacion: 200,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,6 +17,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Obtener usuarios de la base de datos
+    const usuarios = await obtenerUsuarios();
 
     // Buscar usuario por nombre y versículo_id
     const usuario = usuarios.find(
