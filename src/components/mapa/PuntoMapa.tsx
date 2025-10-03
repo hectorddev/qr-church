@@ -55,6 +55,15 @@ export default function PuntoMapa({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevenir comportamiento por defecto
+    handleMouseEnter(); // Reutilizar lógica de mostrar tooltip
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setShowTooltip(false);
+  };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit?.(punto);
@@ -89,6 +98,8 @@ export default function PuntoMapa({
         onMouseLeave={() => setShowTooltip(false)}
         onMouseOver={() => setShowActions(true)}
         onMouseOut={() => setShowActions(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Icono del tipo */}
         <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-black">
