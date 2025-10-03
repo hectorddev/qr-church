@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Usuario, LoginData, AuthResponse } from '@/lib/types';
+import { AuthResponse, LoginData, Usuario } from "@/lib/types";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface AuthContextType {
   usuario: Usuario | null;
@@ -9,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (data: LoginData) => Promise<AuthResponse>;
   logout: () => void;
+  updateUser: (updatedUser: Usuario) => void;
   isAuthenticated: boolean;
 }
 
@@ -17,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
   return context;
 };
@@ -30,20 +37,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const isAdmin = usuario?.rol === 'admin';
+  const isAdmin = usuario?.rol === "admin";
   const isAuthenticated = !!usuario;
 
   // Cargar usuario desde localStorage al inicializar
   useEffect(() => {
     const loadUser = () => {
       try {
-        const storedUser = localStorage.getItem('usuario');
+        const storedUser = localStorage.getItem("usuario");
         if (storedUser) {
           setUsuario(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Error al cargar usuario:', error);
-        localStorage.removeItem('usuario');
+        console.error("Error al cargar usuario:", error);
+        localStorage.removeItem("usuario");
       } finally {
         setIsLoading(false);
       }
@@ -55,11 +62,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginData): Promise<AuthResponse> => {
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
@@ -68,16 +75,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (result.success && result.usuario) {
         setUsuario(result.usuario);
-        localStorage.setItem('usuario', JSON.stringify(result.usuario));
+        localStorage.setItem("usuario", JSON.stringify(result.usuario));
         return result;
       } else {
         return result;
       }
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error("Error en login:", error);
       return {
         success: false,
-        error: 'Error de conexión. Intenta nuevamente.'
+        error: "Error de conexión. Intenta nuevamente.",
       };
     } finally {
       setIsLoading(false);
@@ -86,7 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUsuario(null);
-    localStorage.removeItem('usuario');
+    localStorage.removeItem("usuario");
+  };
+
+  const updateUser = (updatedUser: Usuario) => {
+    setUsuario(updatedUser);
+    localStorage.setItem("usuario", JSON.stringify(updatedUser));
   };
 
   const value: AuthContextType = {
@@ -95,12 +107,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
+    updateUser,
     isAuthenticated,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

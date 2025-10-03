@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function AdminUsuariosPage() {
-  const { isAdmin, isAuthenticated, isLoading } = useAuth();
+  const {
+    isAdmin,
+    isAuthenticated,
+    isLoading,
+    usuario: currentUser,
+    updateUser,
+  } = useAuth();
   const router = useRouter();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,6 +201,12 @@ export default function AdminUsuariosPage() {
           delete newState[userId];
           return newState;
         });
+
+        // Si el usuario actualizado es el usuario logueado, actualizar el contexto
+        if (currentUser && currentUser.id === userId) {
+          updateUser(data.data);
+        }
+
         setSuccessMessage(`¡Puntuación de ${nombre} actualizada exitosamente!`);
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
