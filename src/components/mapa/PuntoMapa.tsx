@@ -26,6 +26,10 @@ export default function PuntoMapa({
     "top" | "bottom" | "left" | "right"
   >("top");
 
+  // Estado visual al presionar (desktop y mobile) y efecto ripple
+  const [isPressed, setIsPressed] = useState(false);
+  const [showRipple, setShowRipple] = useState(false);
+
   // Usar el emoji del punto directamente
   const displayIcon = punto.emoji || "📍";
 
@@ -56,12 +60,18 @@ export default function PuntoMapa({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevenir comportamiento por defecto
+    e.preventDefault(); // Prevenir comportamiento por defecto en mobile
+    setIsPressed(true);
+    // Efecto ripple corto en mobile
+    setShowRipple(true);
+    setTimeout(() => setShowRipple(false), 250);
     // No mostrar tooltip en móvil para evitar repetición con el panel
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     setShowTooltip(false);
+    setIsPressed(false);
+    setShowRipple(false);
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -76,33 +86,55 @@ export default function PuntoMapa({
     }
   };
 
+  // Accesibilidad: permitir activar el punto con Enter o Espacio
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.(punto);
+    }
+  };
+
   return (
     <div className="relative">
       {/* Punto del mapa */}
       <div
         className={`
-          relative w-8 h-8 rounded-full border-4 border-white shadow-2xl cursor-pointer
-          transition-all duration-300 hover:scale-150 hover:rotate-12
-          ${
-            isSelected
-              ? "ring-4 ring-purple-400 ring-opacity-50 animate-pulse"
-              : ""
+          relative w-12 h-12 sm:w-10 sm:h-10 rounded-full border-2 sm:border-4 border-white/90 shadow-xl cursor-pointer select-none touch-manipulation
+          transition-transform duration-150 ease-out ${
+            isPressed ? "scale-95" : "hover:scale-110"
           }
+          bg-gradient-to-br from-purple-500 to-pink-500
+          ${isSelected ? "ring-4 ring-purple-400/70 z-20" : "z-10"}
+          focus-visible:ring-4 focus-visible:ring-purple-400/70
+          motion-reduce:transition-none motion-reduce:transform-none
         `}
-        style={{
-          backgroundColor: "#8b5cf6", // Color púrpura por defecto
-          boxShadow: "0 0 20px #8b5cf640, 0 0 40px #8b5cf620",
-        }}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setShowTooltip(false)}
         onMouseOver={() => setShowActions(true)}
         onMouseOut={() => setShowActions(false)}
+        onMouseDown={() => {
+          setIsPressed(true);
+          setShowRipple(true);
+          setTimeout(() => setShowRipple(false), 250);
+        }}
+        onMouseUp={() => setIsPressed(false)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        tabIndex={0}
+        role="button"
+        aria-pressed={isSelected}
+        aria-label={punto.nombre}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
       >
+        {/* Ripple al presionar */}
+        {showRipple && (
+          <span className="absolute inset-0 rounded-full bg-white/40 animate-ping motion-reduce:animate-none pointer-events-none" />
+        )}
         {/* Icono del tipo */}
-        <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-black">
+        <div className="absolute inset-0 flex items-center justify-center text-white text-2xl sm:text-xl font-black drop-shadow">
           {displayIcon}
         </div>
 
@@ -117,35 +149,39 @@ export default function PuntoMapa({
         <div
           className={`absolute z-20 ${
             tooltipPosition === "top"
-              ? "bottom-full left-1/2 transform -translate-x-1/2 mb-3"
+              ? "bottom-full left-1/2 -translate-x-1/2 mb-3"
               : tooltipPosition === "bottom"
-              ? "top-full left-1/2 transform -translate-x-1/2 mt-3"
+              ? "top-full left-1/2 -translate-x-1/2 mt-3"
               : tooltipPosition === "left"
-              ? "right-full top-1/2 transform -translate-y-1/2 mr-3"
-              : "left-full top-1/2 transform -translate-y-1/2 ml-3"
+              ? "right-full top-1/2 -translate-y-1/2 mr-3"
+              : "left-full top-1/2 -translate-y-1/2 ml-3"
           }`}
         >
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl border-2 border-white max-w-xs">
-            <div className="font-black text-lg">{punto.nombre}</div>
-            <div className="text-purple-100 font-bold">
-              {displayIcon} {punto.pointerName}
+          <div className="relative">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl max-w-[240px] sm:max-w-xs break-words">
+              <div className="font-black text-lg leading-tight">
+                {punto.nombre}
+              </div>
+              <div className="text-purple-100 font-bold">
+                {displayIcon} {punto.pointerName}
+              </div>
+              {punto.año && (
+                <div className="text-purple-200 text-xs mt-1">{punto.año}</div>
+              )}
             </div>
-            {punto.año && (
-              <div className="text-purple-200 text-xs mt-1">{punto.año}</div>
-            )}
+            {/* Flecha del tooltip con gradiente consistente */}
+            <div
+              className={`w-3 h-3 bg-gradient-to-r from-purple-600 to-pink-600 rotate-45 absolute ${
+                tooltipPosition === "top"
+                  ? "top-full left-1/2 -translate-x-1/2"
+                  : tooltipPosition === "bottom"
+                  ? "bottom-full left-1/2 -translate-x-1/2"
+                  : tooltipPosition === "left"
+                  ? "left-full top-1/2 -translate-y-1/2"
+                  : "right-full top-1/2 -translate-y-1/2"
+              }`}
+            />
           </div>
-          {/* Flecha del tooltip - ajustada según posición */}
-          <div
-            className={`absolute w-0 h-0 border-6 border-transparent ${
-              tooltipPosition === "top"
-                ? "top-full left-1/2 transform -translate-x-1/2 border-t-purple-600"
-                : tooltipPosition === "bottom"
-                ? "bottom-full left-1/2 transform -translate-x-1/2 border-b-purple-600"
-                : tooltipPosition === "left"
-                ? "left-full top-1/2 transform -translate-y-1/2 border-l-purple-600"
-                : "right-full top-1/2 transform -translate-y-1/2 border-r-purple-600"
-            }`}
-          />
         </div>
       )}
 
