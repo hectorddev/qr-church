@@ -1,4 +1,5 @@
 // Configuración de base de datos para producción y desarrollo
+import { ensureMongoIndexes, getDb } from "./mongodb";
 import {
   CrearPuntoData,
   CrearRetoData,
@@ -14,6 +15,7 @@ const isVercel = process.env.VERCEL === "1";
 const hasSupabase =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const hasMongo = !!process.env.MONGODB_URI;
 
 // Base de datos Supabase (GRATUITA)
 class SupabaseDatabase {
@@ -528,6 +530,255 @@ class SupabaseDatabase {
   }
 }
 
+// Base de datos MongoDB (Atlas)
+class MongoDatabase {
+  private async col<T>(name: string) {
+    const db = await getDb();
+    return db.collection<T>(name);
+  }
+
+  // Helpers de mapeo
+  private mapPunto(doc: any): PuntoMapa {
+    return {
+      id: doc.id ?? doc._id,
+      nombre: doc.nombre,
+      descripcion: doc.descripcion ?? undefined,
+      x: typeof doc.x === "number" ? doc.x : parseFloat(doc.x),
+      y: typeof doc.y === "number" ? doc.y : parseFloat(doc.y),
+      emoji: doc.emoji,
+      pointerName: doc.pointerName,
+      referencias: doc.referencias ?? undefined,
+      año: doc.año ?? undefined,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
+    };
+  }
+
+  private mapUsuario(doc: any): Usuario {
+    return {
+      id: doc.id ?? doc._id,
+      nombre: doc.nombre,
+      versiculo_id: doc.versiculo_id,
+      rol: doc.rol,
+      puntuacion: typeof doc.puntuacion === "number" ? doc.puntuacion : 0,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
+    };
+  }
+
+  private mapReto(doc: any): Reto {
+    return {
+      id: doc.id ?? doc._id,
+      titulo: doc.titulo,
+      descripcion: doc.descripcion,
+      fecha_inicio: doc.fecha_inicio ? new Date(doc.fecha_inicio) : new Date(),
+      fecha_fin: doc.fecha_fin ? new Date(doc.fecha_fin) : new Date(),
+      activo: !!doc.activo,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
+    };
+  }
+
+  // Puntos
+  async crearPunto(data: CrearPuntoData): Promise<PuntoMapa> {
+    const id = `punto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date();
+    const doc = {
+      _id: id,
+      id,
+      ...data,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const col = await this.col<any>("puntos");
+    await col.insertOne(doc);
+    return this.mapPunto(doc);
+  }
+
+  async obtenerPuntos(): Promise<PuntoMapa[]> {
+    const col = await this.col<any>("puntos");
+    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+    return docs.map((d) => this.mapPunto(d));
+  }
+
+  async obtenerPunto(id: string): Promise<PuntoMapa | null> {
+    const col = await this.col<any>("puntos");
+    const doc = await col.findOne({ _id: id });
+    return doc ? this.mapPunto(doc) : null;
+  }
+
+  async actualizarPunto(
+    id: string,
+    data: Partial<CrearPuntoData>
+  ): Promise<PuntoMapa | null> {
+    const col = await this.col<any>("puntos");
+    const updateData: any = {};
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined) updateData[k] = v;
+    });
+    if (Object.keys(updateData).length === 0)
+      return await this.obtenerPunto(id);
+    updateData.updatedAt = new Date();
+    const res = await col.updateOne({ _id: id }, { $set: updateData });
+    if (res.matchedCount === 0) return null;
+    return await this.obtenerPunto(id);
+  }
+
+  async eliminarPunto(id: string): Promise<boolean> {
+    const col = await this.col<any>("puntos");
+    const res = await col.deleteOne({ _id: id });
+    return res.deletedCount === 1;
+  }
+
+  async eliminarTodosPuntos(): Promise<number> {
+    const col = await this.col<any>("puntos");
+    const res = await col.deleteMany({});
+    return res.deletedCount ?? 0;
+  }
+
+  // Usuarios
+  async crearUsuario(data: CrearUsuarioData): Promise<Usuario> {
+    const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date();
+    const doc = {
+      _id: id,
+      id,
+      nombre: data.nombre,
+      versiculo_id: data.versiculo_id,
+      rol: data.rol,
+      puntuacion: data.puntuacion ?? 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const col = await this.col<any>("usuarios");
+    await col.insertOne(doc);
+    return this.mapUsuario(doc);
+  }
+
+  async obtenerUsuarios(): Promise<Usuario[]> {
+    const col = await this.col<any>("usuarios");
+    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+    return docs.map((d) => this.mapUsuario(d));
+  }
+
+  async obtenerUsuario(id: string): Promise<Usuario | null> {
+    const col = await this.col<any>("usuarios");
+    const doc = await col.findOne({ _id: id });
+    return doc ? this.mapUsuario(doc) : null;
+  }
+
+  async actualizarUsuario(
+    id: string,
+    data: Partial<CrearUsuarioData>
+  ): Promise<Usuario | null> {
+    const col = await this.col<any>("usuarios");
+    const updateData: any = {};
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined) updateData[k] = v;
+    });
+    if (Object.keys(updateData).length === 0)
+      return await this.obtenerUsuario(id);
+    updateData.updatedAt = new Date();
+
+    // Debug: log de operación
+    console.log("[MongoDB] actualizarUsuario -> filtro:", { _id: id });
+    console.log("[MongoDB] actualizarUsuario -> set:", updateData);
+
+    const res = await col.updateOne({ _id: id }, { $set: updateData });
+
+    // Debug: resultado
+    console.log("[MongoDB] actualizarUsuario -> resultado:", {
+      matchedCount: res.matchedCount,
+      modifiedCount: res.modifiedCount,
+    });
+
+    if (res.matchedCount === 0) return null;
+    return await this.obtenerUsuario(id);
+  }
+
+  async actualizarPuntuacionUsuario(
+    id: string,
+    puntuacion: number
+  ): Promise<Usuario | null> {
+    return this.actualizarUsuario(id, { puntuacion });
+  }
+
+  async eliminarUsuario(id: string): Promise<boolean> {
+    const col = await this.col<any>("usuarios");
+    const res = await col.deleteOne({ _id: id });
+    return res.deletedCount === 1;
+  }
+
+  // Retos
+  async crearReto(data: CrearRetoData): Promise<Reto> {
+    const id = Date.now().toString();
+    const now = new Date();
+    const doc = {
+      _id: id,
+      id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      fecha_inicio: data.fecha_inicio,
+      fecha_fin: data.fecha_fin,
+      activo: data.activo !== undefined ? data.activo : true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const col = await this.col<any>("retos");
+    await col.insertOne(doc);
+    return this.mapReto(doc);
+  }
+
+  async obtenerRetos(): Promise<Reto[]> {
+    const col = await this.col<any>("retos");
+    const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
+    return docs.map((d) => this.mapReto(d));
+  }
+
+  async obtenerRetosActivos(): Promise<Reto[]> {
+    const col = await this.col<any>("retos");
+    const docs = await col
+      .find({ activo: true })
+      .sort({ fecha_inicio: 1 })
+      .toArray();
+    return docs.map((d) => this.mapReto(d));
+  }
+
+  async obtenerReto(id: string): Promise<Reto | null> {
+    const col = await this.col<any>("retos");
+    const doc = await col.findOne({ _id: id });
+    return doc ? this.mapReto(doc) : null;
+  }
+
+  async actualizarReto(
+    id: string,
+    data: Partial<CrearRetoData>
+  ): Promise<Reto | null> {
+    const col = await this.col<any>("retos");
+    const updateData: any = {};
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined) {
+        if (k === "fecha_inicio" || k === "fecha_fin") {
+          updateData[k] = v as Date;
+        } else {
+          updateData[k] = v;
+        }
+      }
+    });
+    if (Object.keys(updateData).length === 0) return await this.obtenerReto(id);
+    updateData.updatedAt = new Date();
+    const res = await col.updateOne({ _id: id }, { $set: updateData });
+    if (res.matchedCount === 0) return null;
+    return await this.obtenerReto(id);
+  }
+
+  async eliminarReto(id: string): Promise<boolean> {
+    const col = await this.col<any>("retos");
+    const res = await col.deleteOne({ _id: id });
+    return res.deletedCount === 1;
+  }
+}
+
 // Base de datos en memoria para desarrollo (temporal)
 class InMemoryDatabase {
   private puntos: PuntoMapa[] = [];
@@ -680,7 +931,7 @@ class InMemoryDatabase {
 }
 
 // Instancia de base de datos
-let db: InMemoryDatabase | SupabaseDatabase;
+let db: InMemoryDatabase | MongoDatabase | SupabaseDatabase;
 
 // Inicializar base de datos
 export function initializeDatabase() {
@@ -688,27 +939,24 @@ export function initializeDatabase() {
     console.log("🔍 Inicializando base de datos...");
     console.log("📊 isProduction:", isProduction);
     console.log("🌐 isVercel:", isVercel);
-    console.log("🗄️ hasSupabase:", hasSupabase);
-    console.log(
-      "🔗 NEXT_PUBLIC_SUPABASE_URL presente:",
-      !!process.env.NEXT_PUBLIC_SUPABASE_URL
-    );
-    console.log(
-      "🔑 NEXT_PUBLIC_SUPABASE_ANON_KEY presente:",
-      !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    console.log("🍃 hasMongo:", hasMongo);
+    console.log("🗄️ hasSupabase (legacy, ignorado):", hasSupabase);
 
-    if (hasSupabase) {
-      console.log("🚀 Usando Supabase (GRATUITO) para base de datos");
+    if (hasMongo) {
+      console.log("🚀 Usando MongoDB Atlas para base de datos");
       try {
-        db = new SupabaseDatabase();
-        console.log("✅ SupabaseDatabase inicializada correctamente");
+        db = new MongoDatabase();
+        // Asegurar índices sin bloquear inicialización
+        ensureMongoIndexes().catch((e) =>
+          console.warn("⚠️ No se pudieron asegurar índices de MongoDB:", e)
+        );
+        console.log("✅ MongoDatabase inicializada correctamente");
       } catch (error) {
-        console.error("❌ Error inicializando SupabaseDatabase:", error);
+        console.error("❌ Error inicializando MongoDatabase:", error);
         throw error;
       }
     } else {
-      console.log("💾 Usando base de datos en memoria");
+      console.log("💾 Usando base de datos en memoria (solo desarrollo)");
       db = new InMemoryDatabase();
 
       // Solo inicializar datos de ejemplo en desarrollo
