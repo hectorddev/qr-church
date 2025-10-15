@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useCallback } from 'react';
-import Image from 'next/image';
-import { PuntoMapa, MapaCoordenadas } from '@/lib/types';
-import PuntoMapaComponent from './PuntoMapa';
+import { MapaCoordenadas, PuntoMapa } from "@/lib/types";
+import Image from "next/image";
+import React, { useCallback, useRef, useState } from "react";
+import PuntoMapaComponent from "./PuntoMapa";
 
 interface MapaInteractivoProps {
   puntos: PuntoMapa[];
@@ -20,24 +20,27 @@ export default function MapaInteractivo({
   onPuntoClick,
   onPuntoAdd,
   onPuntoUpdate,
-  onPuntoDelete
+  onPuntoDelete,
 }: MapaInteractivoProps) {
   const [isAddingPoint, setIsAddingPoint] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Manejar clic en el mapa
-  const handleMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAddingPoint || !modoEdicion) return;
+  const handleMapClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isAddingPoint || !modoEdicion) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    const coordenadas: MapaCoordenadas = { x, y };
-    onPuntoAdd?.(coordenadas);
-    setIsAddingPoint(false);
-  }, [isAddingPoint, modoEdicion, onPuntoAdd]);
+      const coordenadas: MapaCoordenadas = { x, y };
+      onPuntoAdd?.(coordenadas);
+      setIsAddingPoint(false);
+    },
+    [isAddingPoint, modoEdicion, onPuntoAdd]
+  );
 
   // Activar modo de agregar punto
   const handleAddPoint = useCallback(() => {
@@ -51,10 +54,13 @@ export default function MapaInteractivo({
   }, []);
 
   // Manejar clic en un punto
-  const handlePointClick = useCallback((punto: PuntoMapa) => {
-    setSelectedPoint(punto.id);
-    onPuntoClick?.(punto);
-  }, [onPuntoClick]);
+  const handlePointClick = useCallback(
+    (punto: PuntoMapa) => {
+      setSelectedPoint(punto.id);
+      onPuntoClick?.(punto);
+    },
+    [onPuntoClick]
+  );
 
   return (
     <div className="relative w-full h-full">
@@ -92,7 +98,9 @@ export default function MapaInteractivo({
             <div className="flex items-center justify-center gap-2 text-center">
               <span className="text-lg sm:text-xl">🎯</span>
               <p className="font-bold text-sm sm:text-lg">
-                <span className="hidden sm:inline">Haz clic en el mapa para agregar un principio</span>
+                <span className="hidden sm:inline">
+                  Haz clic en el mapa para agregar un principio
+                </span>
                 <span className="sm:hidden">Toca el mapa para agregar</span>
               </p>
             </div>
@@ -103,22 +111,24 @@ export default function MapaInteractivo({
       {/* Contenedor del mapa */}
       <div
         ref={mapRef}
-        className={`relative w-full h-full bg-white rounded-lg shadow-lg overflow-hidden ${
-          isAddingPoint ? 'cursor-crosshair' : 'cursor-default'
+        className={`relative w-full h-full bg-white rounded-lg shadow-lg overflow-visible ${
+          isAddingPoint ? "cursor-crosshair" : "cursor-default"
         }`}
         onClick={handleMapClick}
       >
-        {/* Imagen del mapa */}
-        <Image
-          src="/image.png"
-          alt="Mapa de Principios del Camino"
-          fill
-          className="object-contain"
-          draggable={false}
-        />
+        {/* Capa de imagen con recorte de bordes (mantiene el borde redondeado) */}
+        <div className="absolute inset-0 rounded-lg overflow-hidden z-0">
+          <Image
+            src="/image.png"
+            alt="Mapa de Principios del Camino"
+            fill
+            className="object-contain"
+            draggable={false}
+          />
+        </div>
 
-        {/* Capa de puntos */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Capa de puntos (permite que el tooltip sobresalga del contenedor) */}
+        <div className="absolute inset-0 pointer-events-none z-10">
           {puntos.map((punto) => (
             <div
               key={punto.id}
@@ -126,7 +136,7 @@ export default function MapaInteractivo({
               style={{
                 left: `${punto.x}%`,
                 top: `${punto.y}%`,
-                transform: 'translate(-50%, -50%)'
+                transform: "translate(-50%, -50%)",
               }}
             >
               <PuntoMapaComponent
@@ -143,7 +153,7 @@ export default function MapaInteractivo({
 
         {/* Overlay cuando está agregando puntos */}
         {isAddingPoint && (
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10 pointer-events-none z-20" />
         )}
       </div>
     </div>

@@ -164,7 +164,7 @@ export default function MapaPage() {
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 xl:gap-6">
           {/* Mapa */}
           <div className="xl:col-span-3 order-2 xl:order-1">
-            <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl sm:rounded-2xl xl:rounded-3xl shadow-xl xl:shadow-2xl border-2 xl:border-4 border-purple-200 h-[50vh] sm:h-[60vh] md:h-[70vh] xl:h-[75vh] min-h-[350px] sm:min-h-[400px] md:min-h-[500px] xl:min-h-[600px] max-h-[800px] xl:max-h-[900px] overflow-hidden">
+            <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl sm:rounded-2xl xl:rounded-3xl shadow-xl xl:shadow-2xl border-2 xl:border-4 border-purple-200 h-[50vh] sm:h-[60vh] md:h-[70vh] xl:h-[75vh] min-h-[350px] sm:min-h-[400px] md:min-h-[500px] xl:min-h-[600px] max-h-[800px] xl:max-h-[900px] overflow-visible">
               <MapaInteractivo
                 puntos={puntos}
                 modoEdicion={false}

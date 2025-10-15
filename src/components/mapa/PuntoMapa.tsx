@@ -36,6 +36,8 @@ export default function PuntoMapa({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick?.(punto);
+    // Mostrar/ocultar tooltip al hacer click (desktop y mobile)
+    setShowTooltip((prev) => !prev);
   };
 
   const handleMouseEnter = () => {
@@ -69,9 +71,11 @@ export default function PuntoMapa({
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    setShowTooltip(false);
     setIsPressed(false);
     setShowRipple(false);
+    // Mostrar tooltip en mobile por un corto tiempo
+    setShowTooltip(true);
+    setTimeout(() => setShowTooltip(false), 2500);
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -95,7 +99,11 @@ export default function PuntoMapa({
   };
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
       {/* Punto del mapa */}
       <div
         className={`
@@ -109,8 +117,6 @@ export default function PuntoMapa({
           motion-reduce:transition-none motion-reduce:transform-none
         `}
         onClick={handleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setShowTooltip(false)}
         onMouseOver={() => setShowActions(true)}
         onMouseOut={() => setShowActions(false)}
         onMouseDown={() => {
@@ -147,7 +153,7 @@ export default function PuntoMapa({
       {/* Tooltip con información - Posicionamiento dinámico */}
       {showTooltip && (
         <div
-          className={`absolute z-20 ${
+          className={`absolute z-50 ${
             tooltipPosition === "top"
               ? "bottom-full left-1/2 -translate-x-1/2 mb-3"
               : tooltipPosition === "bottom"
@@ -158,7 +164,7 @@ export default function PuntoMapa({
           }`}
         >
           <div className="relative">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl max-w-[240px] sm:max-w-xs break-words">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-2xl px-4 py-3 shadow-2xl max-w-[240px] sm:max-w-xs break-words ring-2 ring-white">
               <div className="font-black text-lg leading-tight">
                 {punto.nombre}
               </div>
@@ -171,7 +177,7 @@ export default function PuntoMapa({
             </div>
             {/* Flecha del tooltip con gradiente consistente */}
             <div
-              className={`w-3 h-3 bg-gradient-to-r from-purple-600 to-pink-600 rotate-45 absolute ${
+              className={`w-3 h-3 bg-gradient-to-r from-purple-600 to-pink-600 rotate-45 absolute ring-2 ring-white shadow-md rounded-[2px] ${
                 tooltipPosition === "top"
                   ? "top-full left-1/2 -translate-x-1/2"
                   : tooltipPosition === "bottom"
@@ -180,6 +186,12 @@ export default function PuntoMapa({
                   ? "left-full top-1/2 -translate-y-1/2"
                   : "right-full top-1/2 -translate-y-1/2"
               }`}
+              style={{
+                marginTop: tooltipPosition === "top" ? "-6px" : undefined,
+                marginBottom: tooltipPosition === "bottom" ? "-6px" : undefined,
+                marginLeft: tooltipPosition === "left" ? "-6px" : undefined,
+                marginRight: tooltipPosition === "right" ? "-6px" : undefined,
+              }}
             />
           </div>
         </div>
