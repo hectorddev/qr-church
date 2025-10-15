@@ -16,6 +16,7 @@ const hasSupabase =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const hasMongo = !!process.env.MONGODB_URI;
+const dbProvider = (process.env.DB_PROVIDER || "").toLowerCase();
 
 // Base de datos Supabase (GRATUITA)
 class SupabaseDatabase {
@@ -940,30 +941,38 @@ export function initializeDatabase() {
     console.log("📊 isProduction:", isProduction);
     console.log("🌐 isVercel:", isVercel);
     console.log("🍃 hasMongo:", hasMongo);
-    console.log("🗄️ hasSupabase (legacy, ignorado):", hasSupabase);
+    console.log("🗄️ hasSupabase:", hasSupabase);
+    console.log("⚙️ DB_PROVIDER:", dbProvider || "(auto)");
 
-    if (hasMongo) {
-      console.log("🚀 Usando MongoDB Atlas para base de datos");
-      try {
+    try {
+      if (dbProvider === "mongo" || (!dbProvider && hasMongo)) {
+        console.log("🚀 Usando MongoDB Atlas para base de datos");
         db = new MongoDatabase();
         // Asegurar índices sin bloquear inicialización
         ensureMongoIndexes().catch((e) =>
           console.warn("⚠️ No se pudieron asegurar índices de MongoDB:", e)
         );
         console.log("✅ MongoDatabase inicializada correctamente");
-      } catch (error) {
-        console.error("❌ Error inicializando MongoDatabase:", error);
-        throw error;
-      }
-    } else {
-      console.log("💾 Usando base de datos en memoria (solo desarrollo)");
-      db = new InMemoryDatabase();
+      } else if (dbProvider === "supabase" || (!dbProvider && hasSupabase)) {
+        console.log("🚀 Usando Supabase como base de datos");
+        db = new SupabaseDatabase();
+        console.log("✅ SupabaseDatabase inicializada correctamente");
+      } else {
+        console.log("💾 Usando base de datos en memoria");
+        db = new InMemoryDatabase();
 
-      // Solo inicializar datos de ejemplo en desarrollo
-      if (!isProduction) {
-        console.log("🌱 Inicializando datos de ejemplo...");
-        initializeExampleData();
+        if (isProduction) {
+          console.warn(
+            "⚠️ Ejecutando en producción sin proveedor de BD. Define DB_PROVIDER=supabase o mongo y sus variables correspondientes. Los datos no persistirán."
+          );
+        } else {
+          console.log("🌱 Inicializando datos de ejemplo (desarrollo)...");
+          initializeExampleData();
+        }
       }
+    } catch (error) {
+      console.error("❌ Error inicializando la base de datos:", error);
+      throw error;
     }
   }
   return db;

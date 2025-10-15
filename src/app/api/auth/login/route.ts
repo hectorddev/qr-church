@@ -6,6 +6,21 @@ export async function POST(request: NextRequest) {
   try {
     const body: LoginData = await request.json();
     const { nombre, versiculo_id } = body;
+    // Debug autenticación (sin exponer secretos)
+    const dbProvider = (process.env.DB_PROVIDER || "").toLowerCase();
+    const hasMongo = !!process.env.MONGODB_URI;
+    const hasSupabase =
+      !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    console.log("[Auth] Intento de login:", {
+      nombre,
+      versiculo_id_len: versiculo_id?.length || 0,
+      dbProvider,
+      hasMongo,
+      hasSupabase,
+      env: process.env.NODE_ENV,
+      vercel: process.env.VERCEL,
+    });
 
     // Validar que se proporcionen ambos campos
     if (!nombre || !versiculo_id) {
@@ -19,7 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener usuarios de la base de datos
+    console.log("[Auth] Obteniendo usuarios...");
     const usuarios = await obtenerUsuarios();
+    console.log(
+      "[Auth] Usuarios obtenidos:",
+      Array.isArray(usuarios) ? usuarios.length : "N/A"
+    );
 
     // Buscar usuario por nombre y versículo_id
     const usuario = usuarios.find(
