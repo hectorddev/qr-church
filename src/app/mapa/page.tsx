@@ -1,6 +1,7 @@
 "use client";
 
 import MapaInteractivo from "@/components/mapa/MapaInteractivo";
+import capitalizeName from "@/components/ui/capitalizeName";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiResponse, PuntoMapa, Reto, Usuario } from "@/lib/types";
 import { useEffect, useState } from "react";
@@ -114,7 +115,7 @@ export default function MapaPage() {
                 <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-yellow-100 to-orange-100 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 sm:px-6 py-2 sm:py-3 shadow-lg border-2 border-yellow-300">
                   <span className="text-xl sm:text-2xl">👤</span>
                   <span className="text-gray-800 font-bold text-sm sm:text-base md:text-lg">
-                    ¡Hola, {usuario.nombre}!
+                    ¡Hola, {capitalizeName(usuario.nombre)}!
                   </span>
                 </div>
                 <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full shadow-md">
@@ -362,11 +363,10 @@ export default function MapaPage() {
 
                     <div className="mt-3 sm:mt-4 flex items-center justify-between">
                       <span
-                        className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${
-                          reto.activo
+                        className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${reto.activo
                             ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                             : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-                        }`}
+                          }`}
                       >
                         {reto.activo ? "Activo" : "Finalizado"}
                       </span>
@@ -377,6 +377,44 @@ export default function MapaPage() {
             </div>
           </div>
         )}
+
+        {/* Sección de Minijuegos */}
+        <div className="mt-8 sm:mt-12">
+          <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-sky-50 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border-2 sm:border-4 border-blue-200 p-4 sm:p-6 md:p-8">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-blue-800 mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                🎮 Minijuegos
+              </h2>
+              <p className="text-sm sm:text-base md:text-lg text-blue-700 font-medium">
+                ¡Diviértete y gana puntos extra para tu perfil!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div
+                onClick={() => window.location.href = '/juego'}
+                className="bg-gradient-to-r from-white to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+              >
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <span className="text-2xl sm:text-3xl group-hover:scale-125 transition-transform duration-300">🕊️</span>
+                  <h3 className="font-black text-blue-800 text-lg sm:text-xl">
+                    Vuelo Espiritual
+                  </h3>
+                </div>
+
+                <p className="text-gray-700 font-medium mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
+                  Ayuda a la paloma a volar entre los obstáculos. ¡Cada obstáculo superado es un punto!
+                </p>
+
+                <div className="mt-3 sm:mt-4 flex items-center justify-between">
+                  <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                    Jugar Ahora
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Ranking Top 3 */}
         {ranking.length > 0 && (
@@ -395,22 +433,20 @@ export default function MapaPage() {
                 {ranking.map((usuario, index) => (
                   <div
                     key={usuario.id}
-                    className={`text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 transform transition-all duration-300 hover:scale-105 w-full sm:w-auto max-w-xs ${
-                      index === 0
+                    className={`text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 transform transition-all duration-300 hover:scale-105 w-full sm:w-auto max-w-xs ${index === 0
                         ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300"
                         : index === 1
-                        ? "bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300"
-                        : "bg-gradient-to-r from-orange-100 to-red-100 border-orange-300"
-                    }`}
+                          ? "bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300"
+                          : "bg-gradient-to-r from-orange-100 to-red-100 border-orange-300"
+                      }`}
                   >
                     <div
-                      className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 ${
-                        index === 0
+                      className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 ${index === 0
                           ? "text-yellow-500"
                           : index === 1
-                          ? "text-gray-500"
-                          : "text-orange-500"
-                      }`}
+                            ? "text-gray-500"
+                            : "text-orange-500"
+                        }`}
                     >
                       {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
                     </div>

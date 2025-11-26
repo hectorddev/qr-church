@@ -8,12 +8,11 @@ import {
   obtenerPunto as getPoint,
   actualizarPunto as updatePoint,
   eliminarPunto as deletePoint,
-  eliminarTodosPuntos as deleteAllPoints,
-  initializeDatabase
+  eliminarTodosPuntos as deleteAllPoints
 } from './database';
 
-// Inicializar la base de datos
-initializeDatabase();
+// La inicialización de la base de datos se hace automáticamente
+// cuando se llama a cualquiera de las funciones exportadas
 
 // Exportar las funciones con los nombres originales para compatibilidad
 export const db = {

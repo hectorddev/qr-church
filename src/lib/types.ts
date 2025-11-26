@@ -148,3 +148,70 @@ export const EMOJIS_COMUNES = [
   "🎵",
   "🎪",
 ] as const;
+
+// Tipos para planes de lectura bíblica
+export interface ReadingPlan {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  icono: string;
+  created_by: string | null; // null = plan oficial del sistema
+  is_public: boolean;
+  activo: boolean;
+  orden: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PlanChapter {
+  id: string;
+  plan_id: string;
+  dia: number;
+  libro: string; // Código OSIS del libro (e.g., "JER", "GEN")
+  capitulo: number;
+  version: string; // Versión de la Biblia (e.g., "NVI", "RVR1960")
+  orden: number; // Orden dentro del día
+  createdAt: Date;
+}
+
+export interface UserProgress {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  chapter_id: string;
+  completado: boolean;
+  fecha_completado?: Date;
+  createdAt: Date;
+}
+
+export interface PlanWithProgress extends ReadingPlan {
+  capitulos: PlanChapter[];
+  progreso?: UserProgress[];
+  porcentaje_completado?: number;
+  nombre_creador?: string; // Nombre del usuario que creó el plan
+  es_creador?: boolean; // true si el usuario actual es el creador
+  total_capitulos?: number;
+  capitulos_completados?: number;
+}
+
+export interface CreatePlanData {
+  titulo: string;
+  descripcion: string;
+  icono: string;
+  is_public: boolean;
+  capitulos: {
+    dia: number;
+    libro: string;
+    capitulo: number;
+    version: string;
+    orden: number;
+  }[];
+}
+
+export interface CreateChapterData {
+  dia: number;
+  libro: string;
+  capitulo: number;
+  version: string;
+  orden: number;
+}

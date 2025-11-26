@@ -25,6 +25,8 @@ export async function getMongoClient(): Promise<MongoClient> {
   if (!globalThis._mongoClientPromise) {
     const client = new MongoClient(uri, {
       // Opciones aquí si las necesitas (por defecto excelentes para Atlas)
+      tls: true,
+      tlsAllowInvalidCertificates: true,
     });
     console.log("🔌 Conectando a MongoDB Atlas...");
     globalThis._mongoClientPromise = client.connect().then((c) => {

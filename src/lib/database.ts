@@ -7,6 +7,12 @@ import {
   PuntoMapa,
   Reto,
   Usuario,
+  ReadingPlan,
+  PlanChapter,
+  UserProgress,
+  CreatePlanData,
+  CreateChapterData,
+  PlanWithProgress,
 } from "./types";
 
 // Configuración de base de datos
@@ -529,6 +535,31 @@ class SupabaseDatabase {
     console.log("Reto eliminado de Supabase:", id);
     return true;
   }
+
+  // Reading Plans - Not implemented for Supabase yet
+  async crearPlanLectura(data: CreatePlanData, userId: string): Promise<ReadingPlan> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
+
+  async obtenerPlanesLectura(userId: string, filter?: "official" | "my" | "public"): Promise<ReadingPlan[]> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
+
+  async obtenerPlanConProgreso(planId: string, userId: string): Promise<PlanWithProgress | null> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
+
+  async actualizarPlanLectura(planId: string, data: Partial<CreatePlanData>, userId: string): Promise<ReadingPlan | null> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
+
+  async eliminarPlanLectura(planId: string, userId: string): Promise<boolean> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
+
+  async marcarCapituloCompletado(chapterId: string, userId: string, completado: boolean): Promise<UserProgress> {
+    throw new Error("Reading plans not implemented for Supabase yet. Use MongoDB.");
+  }
 }
 
 // Base de datos MongoDB (Atlas)
@@ -778,216 +809,381 @@ class MongoDatabase {
     const res = await col.deleteOne({ _id: id });
     return res.deletedCount === 1;
   }
-}
 
-// Base de datos en memoria para desarrollo (temporal)
-class InMemoryDatabase {
-  private puntos: PuntoMapa[] = [];
-  private usuarios: Usuario[] = [];
-  private retos: Reto[] = [];
-  private nextId = 1;
+  // ===== READING PLANS =====
 
-  async crearPunto(data: CrearPuntoData): Promise<PuntoMapa> {
-    const nuevoPunto: PuntoMapa = {
-      id: `punto_${this.nextId++}`,
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  private mapReadingPlan(doc: any): ReadingPlan {
+    return {
+      id: doc.id ?? doc._id,
+      titulo: doc.titulo,
+      descripcion: doc.descripcion,
+      icono: doc.icono,
+      created_by: doc.created_by ?? null,
+      is_public: !!doc.is_public,
+      activo: !!doc.activo,
+      orden: typeof doc.orden === "number" ? doc.orden : 0,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
     };
-    this.puntos.push(nuevoPunto);
-    console.log("Punto creado:", nuevoPunto);
-    return nuevoPunto;
   }
 
-  async obtenerPuntos(): Promise<PuntoMapa[]> {
-    return [...this.puntos];
-  }
-
-  async obtenerPunto(id: string): Promise<PuntoMapa | null> {
-    return this.puntos.find((punto) => punto.id === id) || null;
-  }
-
-  async actualizarPunto(
-    id: string,
-    data: Partial<CrearPuntoData>
-  ): Promise<PuntoMapa | null> {
-    const index = this.puntos.findIndex((punto) => punto.id === id);
-    if (index === -1) return null;
-
-    this.puntos[index] = {
-      ...this.puntos[index],
-      ...data,
-      updatedAt: new Date(),
+  private mapPlanChapter(doc: any): PlanChapter {
+    return {
+      id: doc.id ?? doc._id,
+      plan_id: doc.plan_id,
+      dia: typeof doc.dia === "number" ? doc.dia : 1,
+      libro: doc.libro,
+      capitulo: typeof doc.capitulo === "number" ? doc.capitulo : 1,
+      version: doc.version ?? "NVI",
+      orden: typeof doc.orden === "number" ? doc.orden : 0,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
     };
-    return this.puntos[index];
   }
 
-  async eliminarPunto(id: string): Promise<boolean> {
-    const index = this.puntos.findIndex((punto) => punto.id === id);
-    if (index === -1) return false;
-    this.puntos.splice(index, 1);
-    return true;
-  }
-
-  async eliminarTodosPuntos(): Promise<number> {
-    const count = this.puntos.length;
-    this.puntos = [];
-    return count;
-  }
-
-  // Implementaciones básicas para usuarios (solo para desarrollo)
-  async crearUsuario(data: CrearUsuarioData): Promise<Usuario> {
-    const nuevoUsuario: Usuario = {
-      id: `user_${this.nextId++}`,
-      ...data,
-      puntuacion: data.puntuacion || 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  private mapUserProgress(doc: any): UserProgress {
+    return {
+      id: doc.id ?? doc._id,
+      user_id: doc.user_id,
+      plan_id: doc.plan_id,
+      chapter_id: doc.chapter_id,
+      completado: !!doc.completado,
+      fecha_completado: doc.fecha_completado
+        ? new Date(doc.fecha_completado)
+        : undefined,
+      createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
     };
-    this.usuarios.push(nuevoUsuario);
-    return nuevoUsuario;
   }
 
-  async obtenerUsuarios(): Promise<Usuario[]> {
-    return [...this.usuarios];
-  }
+  async crearPlanLectura(
+    data: CreatePlanData,
+    userId: string
+  ): Promise<ReadingPlan> {
+    const id = `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date();
 
-  async obtenerUsuario(id: string): Promise<Usuario | null> {
-    return this.usuarios.find((u) => u.id === id) || null;
-  }
-
-  async actualizarUsuario(
-    id: string,
-    data: Partial<CrearUsuarioData>
-  ): Promise<Usuario | null> {
-    const index = this.usuarios.findIndex((u) => u.id === id);
-    if (index === -1) return null;
-    this.usuarios[index] = {
-      ...this.usuarios[index],
-      ...data,
-      updatedAt: new Date(),
+    const doc = {
+      _id: id,
+      id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      icono: data.icono,
+      created_by: userId,
+      is_public: data.is_public,
+      activo: true,
+      orden: 0,
+      createdAt: now,
+      updatedAt: now,
     };
-    return this.usuarios[index];
+
+    const col = await this.col<any>("reading_plans");
+    await col.insertOne(doc);
+
+    // Crear capítulos si se proporcionan
+    if (data.capitulos && data.capitulos.length > 0) {
+      const chaptersCol = await this.col<any>("reading_plan_chapters");
+      const chapters = data.capitulos.map((cap, index) => ({
+        _id: `chapter_${id}_${Date.now()}_${index}`,
+        id: `chapter_${id}_${Date.now()}_${index}`,
+        plan_id: id,
+        dia: cap.dia,
+        libro: cap.libro,
+        capitulo: cap.capitulo,
+        version: cap.version,
+        orden: cap.orden,
+        createdAt: now,
+      }));
+      await chaptersCol.insertMany(chapters);
+    }
+
+    return this.mapReadingPlan(doc);
   }
 
-  async actualizarPuntuacionUsuario(
-    id: string,
-    puntuacion: number
-  ): Promise<Usuario | null> {
-    return this.actualizarUsuario(id, { puntuacion });
+  async obtenerPlanesLectura(
+    userId: string,
+    filter?: "official" | "my" | "public"
+  ): Promise<ReadingPlan[]> {
+    const col = await this.col<any>("reading_plans");
+
+    let query: any = { activo: true };
+
+    if (filter === "official") {
+      query.created_by = null;
+    } else if (filter === "my") {
+      query.created_by = userId;
+    } else if (filter === "public") {
+      query.$or = [{ is_public: true }, { created_by: null }];
+    } else {
+      // Sin filtro: públicos + propios
+      query.$or = [
+        { is_public: true },
+        { created_by: null },
+        { created_by: userId },
+      ];
+    }
+
+    const docs = await col.find(query).sort({ orden: 1, createdAt: -1 }).toArray();
+    return docs.map((d) => this.mapReadingPlan(d));
   }
 
-  async eliminarUsuario(id: string): Promise<boolean> {
-    const index = this.usuarios.findIndex((u) => u.id === id);
-    if (index === -1) return false;
-    this.usuarios.splice(index, 1);
-    return true;
-  }
+  async obtenerPlanConProgreso(
+    planId: string,
+    userId: string
+  ): Promise<PlanWithProgress | null> {
+    const col = await this.col<any>("reading_plans");
+    const planDoc = await col.findOne({ _id: planId });
 
-  // Implementaciones básicas para retos (solo para desarrollo)
-  async crearReto(data: CrearRetoData): Promise<Reto> {
-    const nuevoReto: Reto = {
-      id: `reto_${this.nextId++}`,
-      ...data,
-      activo: data.activo !== undefined ? data.activo : true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    if (!planDoc) return null;
+
+    // Verificar permisos de visibilidad
+    const plan = this.mapReadingPlan(planDoc);
+    if (
+      !plan.is_public &&
+      plan.created_by !== null &&
+      plan.created_by !== userId
+    ) {
+      return null; // Usuario no tiene permiso para ver este plan
+    }
+
+    // Obtener capítulos
+    const chaptersCol = await this.col<any>("reading_plan_chapters");
+    const chapterDocs = await chaptersCol
+      .find({ plan_id: planId })
+      .sort({ dia: 1, orden: 1 })
+      .toArray();
+    const capitulos = chapterDocs.map((d) => this.mapPlanChapter(d));
+
+    // Obtener progreso del usuario
+    const progressCol = await this.col<any>("user_reading_progress");
+    const progressDocs = await progressCol
+      .find({ plan_id: planId, user_id: userId })
+      .toArray();
+    const progreso = progressDocs.map((d) => this.mapUserProgress(d));
+
+    // Calcular estadísticas
+    const total_capitulos = capitulos.length;
+    const capitulos_completados = progreso.filter((p) => p.completado).length;
+    const porcentaje_completado =
+      total_capitulos > 0
+        ? Math.round((capitulos_completados / total_capitulos) * 100)
+        : 0;
+
+    // Obtener nombre del creador si no es oficial
+    let nombre_creador: string | undefined;
+    if (plan.created_by) {
+      const usuariosCol = await this.col<any>("usuarios");
+      const creador = await usuariosCol.findOne({ _id: plan.created_by });
+      nombre_creador = creador?.nombre;
+    }
+
+    return {
+      ...plan,
+      capitulos,
+      progreso,
+      porcentaje_completado,
+      nombre_creador,
+      es_creador: plan.created_by === userId,
+      total_capitulos,
+      capitulos_completados,
     };
-    this.retos.push(nuevoReto);
-    return nuevoReto;
   }
 
-  async obtenerRetos(): Promise<Reto[]> {
-    return [...this.retos];
-  }
+  async actualizarPlanLectura(
+    planId: string,
+    data: Partial<CreatePlanData>,
+    userId: string
+  ): Promise<ReadingPlan | null> {
+    const col = await this.col<any>("reading_plans");
 
-  async obtenerRetosActivos(): Promise<Reto[]> {
-    return this.retos.filter((r) => r.activo);
-  }
+    // Verificar permisos
+    const planDoc = await col.findOne({ _id: planId });
+    if (!planDoc) return null;
 
-  async obtenerReto(id: string): Promise<Reto | null> {
-    return this.retos.find((r) => r.id === id) || null;
-  }
+    // Solo el creador o admin puede editar (admin check debe hacerse en la API)
+    if (planDoc.created_by && planDoc.created_by !== userId) {
+      throw new Error("No tienes permiso para editar este plan");
+    }
 
-  async actualizarReto(
-    id: string,
-    data: Partial<CrearRetoData>
-  ): Promise<Reto | null> {
-    const index = this.retos.findIndex((r) => r.id === id);
-    if (index === -1) return null;
-    this.retos[index] = {
-      ...this.retos[index],
-      ...data,
-      updatedAt: new Date(),
-    };
-    return this.retos[index];
-  }
+    const updateData: any = {};
+    if (data.titulo !== undefined) updateData.titulo = data.titulo;
+    if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
+    if (data.icono !== undefined) updateData.icono = data.icono;
+    if (data.is_public !== undefined) updateData.is_public = data.is_public;
 
-  async eliminarReto(id: string): Promise<boolean> {
-    const index = this.retos.findIndex((r) => r.id === id);
-    if (index === -1) return false;
-    this.retos.splice(index, 1);
-    return true;
-  }
-}
+    if (Object.keys(updateData).length === 0 && !data.capitulos) {
+      return this.mapReadingPlan(planDoc);
+    }
 
-// Instancia de base de datos
-let db: InMemoryDatabase | MongoDatabase | SupabaseDatabase;
+    updateData.updatedAt = new Date();
+    await col.updateOne({ _id: planId }, { $set: updateData });
 
-// Inicializar base de datos
-export function initializeDatabase() {
-  if (!db) {
-    console.log("🔍 Inicializando base de datos...");
-    console.log("📊 isProduction:", isProduction);
-    console.log("🌐 isVercel:", isVercel);
-    console.log("🍃 hasMongo:", hasMongo);
-    console.log("🗄️ hasSupabase:", hasSupabase);
-    console.log("⚙️ DB_PROVIDER:", dbProvider || "(auto)");
-
-    try {
-      if (dbProvider === "mongo" || (!dbProvider && hasMongo)) {
-        console.log("🚀 Usando MongoDB Atlas para base de datos");
-        db = new MongoDatabase();
-        // Asegurar índices sin bloquear inicialización
-        ensureMongoIndexes().catch((e) =>
-          console.warn("⚠️ No se pudieron asegurar índices de MongoDB:", e)
-        );
-        console.log("✅ MongoDatabase inicializada correctamente");
-      } else if (dbProvider === "supabase" || (!dbProvider && hasSupabase)) {
-        console.log("🚀 Usando Supabase como base de datos");
-        db = new SupabaseDatabase();
-        console.log("✅ SupabaseDatabase inicializada correctamente");
-      } else {
-        console.log("💾 Usando base de datos en memoria");
-        db = new InMemoryDatabase();
-
-        if (isProduction) {
-          console.warn(
-            "⚠️ Ejecutando en producción sin proveedor de BD. Define DB_PROVIDER=supabase o mongo y sus variables correspondientes. Los datos no persistirán."
-          );
-        } else {
-          console.log("🌱 Inicializando datos de ejemplo (desarrollo)...");
-          initializeExampleData();
-        }
+    // Actualizar capítulos si se proporcionan
+    if (data.capitulos) {
+      const chaptersCol = await this.col<any>("reading_plan_chapters");
+      // Eliminar capítulos existentes
+      await chaptersCol.deleteMany({ plan_id: planId });
+      // Insertar nuevos
+      if (data.capitulos.length > 0) {
+        const now = new Date();
+        const chapters = data.capitulos.map((cap, index) => ({
+          _id: `chapter_${planId}_${Date.now()}_${index}`,
+          id: `chapter_${planId}_${Date.now()}_${index}`,
+          plan_id: planId,
+          dia: cap.dia,
+          libro: cap.libro,
+          capitulo: cap.capitulo,
+          version: cap.version,
+          orden: cap.orden,
+          createdAt: now,
+        }));
+        await chaptersCol.insertMany(chapters);
       }
-    } catch (error) {
-      console.error("❌ Error inicializando la base de datos:", error);
-      throw error;
+    }
+
+    const updatedDoc = await col.findOne({ _id: planId });
+    return updatedDoc ? this.mapReadingPlan(updatedDoc) : null;
+  }
+
+  async eliminarPlanLectura(
+    planId: string,
+    userId: string
+  ): Promise<boolean> {
+    const col = await this.col<any>("reading_plans");
+
+    // Verificar permisos
+    const planDoc = await col.findOne({ _id: planId });
+    if (!planDoc) return false;
+
+    if (planDoc.created_by && planDoc.created_by !== userId) {
+      throw new Error("No tienes permiso para eliminar este plan");
+    }
+
+    // Eliminar plan
+    await col.deleteOne({ _id: planId });
+
+    // Eliminar capítulos
+    const chaptersCol = await this.col<any>("reading_plan_chapters");
+    await chaptersCol.deleteMany({ plan_id: planId });
+
+    // Eliminar progreso de todos los usuarios
+    const progressCol = await this.col<any>("user_reading_progress");
+    await progressCol.deleteMany({ plan_id: planId });
+
+    return true;
+  }
+
+  async marcarCapituloCompletado(
+    chapterId: string,
+    userId: string,
+    completado: boolean
+  ): Promise<UserProgress> {
+    const progressCol = await this.col<any>("user_reading_progress");
+
+    // Buscar progreso existente
+    const existing = await progressCol.findOne({
+      user_id: userId,
+      chapter_id: chapterId,
+    });
+
+    const now = new Date();
+
+    if (existing) {
+      // Actualizar
+      const updateData: any = {
+        completado,
+        updatedAt: now,
+      };
+
+      if (completado) {
+        updateData.fecha_completado = now;
+      } else {
+        updateData.fecha_completado = null;
+      }
+
+      await progressCol.updateOne(
+        { _id: existing._id },
+        { $set: updateData }
+      );
+
+      const updated = await progressCol.findOne({ _id: existing._id });
+      return this.mapUserProgress(updated);
+    } else {
+      // Crear nuevo
+      const chapterCol = await this.col<any>("reading_plan_chapters");
+      const chapter = await chapterCol.findOne({ _id: chapterId });
+
+      if (!chapter) {
+        throw new Error("Capítulo no encontrado");
+      }
+
+      const id = `progress_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const doc = {
+        _id: id,
+        id,
+        user_id: userId,
+        plan_id: chapter.plan_id,
+        chapter_id: chapterId,
+        completado,
+        fecha_completado: completado ? now : null,
+        createdAt: now,
+      };
+
+      await progressCol.insertOne(doc);
+      return this.mapUserProgress(doc);
     }
   }
+}
+
+// Variable global para la instancia de base de datos
+let db: MongoDatabase | SupabaseDatabase | null = null;
+
+// Función para inicializar la base de datos
+async function initializeDatabase() {
+  if (db) {
+    return db;
+  }
+
+  try {
+    // Prioridad: DB_PROVIDER > hasMongo > hasSupabase
+    if (dbProvider === "mongo" || (dbProvider === "" && hasMongo)) {
+      db = new MongoDatabase();
+      console.log("✅ MongoDatabase inicializada correctamente");
+    } else if (dbProvider === "supabase" || (dbProvider === "" && hasSupabase)) {
+      db = new SupabaseDatabase();
+      console.log("✅ SupabaseDatabase inicializada correctamente");
+    } else {
+      // Fallback a MongoDB si está disponible
+      if (hasMongo) {
+        db = new MongoDatabase();
+        console.log("✅ MongoDatabase inicializada correctamente (fallback)");
+      } else {
+        throw new Error(
+          "No hay proveedor de base de datos configurado. Define DB_PROVIDER=mongo o supabase y sus variables correspondientes."
+        );
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error inicializando la base de datos:", error);
+    throw error;
+  }
+
   return db;
 }
 
 // Obtener instancia de base de datos
-export function getDatabase() {
+export async function getDatabase() {
   if (!db) {
-    return initializeDatabase();
+    return await initializeDatabase();
   }
   return db;
 }
 
 // Inicializar datos de ejemplo
 async function initializeExampleData() {
+  if (!db) {
+    await initializeDatabase();
+  }
+  if (!db) return;
+
   const existingPoints = await db.obtenerPuntos();
   if (existingPoints.length === 0) {
     console.log("Inicializando datos de ejemplo...");
@@ -1045,29 +1241,28 @@ async function initializeExampleData() {
       },
     ];
 
-    for (const pointData of examplePoints) {
-      await db.crearPunto(pointData);
+    // Insertar puntos de ejemplo
+    for (const point of examplePoints) {
+      await db.crearPunto(point);
     }
-
-    console.log("Datos de ejemplo inicializados correctamente");
   }
 }
 
-// Funciones helper para las API routes
+// Funciones helper para puntos
 export async function crearPunto(data: CrearPuntoData) {
-  const database = getDatabase();
+  const database = await initializeDatabase();
   return await database.crearPunto(data);
 }
 
 export async function obtenerPuntos() {
   console.log("🔍 obtenerPuntos() - Llamando getDatabase()...");
-  const database = getDatabase();
+  const database = await getDatabase();
   console.log("📊 DB obtenida, llamando database.obtenerPuntos()...");
   return await database.obtenerPuntos();
 }
 
 export async function obtenerPunto(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerPunto(id);
 }
 
@@ -1075,33 +1270,33 @@ export async function actualizarPunto(
   id: string,
   data: Partial<CrearPuntoData>
 ) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.actualizarPunto(id, data);
 }
 
 export async function eliminarPunto(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.eliminarPunto(id);
 }
 
 export async function eliminarTodosPuntos() {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.eliminarTodosPuntos();
 }
 
 // Funciones helper para usuarios
 export async function crearUsuario(data: CrearUsuarioData) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.crearUsuario(data);
 }
 
 export async function obtenerUsuarios() {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerUsuarios();
 }
 
 export async function obtenerUsuario(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerUsuario(id);
 }
 
@@ -1109,7 +1304,7 @@ export async function actualizarUsuario(
   id: string,
   data: Partial<CrearUsuarioData>
 ) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.actualizarUsuario(id, data);
 }
 
@@ -1117,42 +1312,87 @@ export async function actualizarPuntuacionUsuario(
   id: string,
   puntuacion: number
 ) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.actualizarPuntuacionUsuario(id, puntuacion);
 }
 
 export async function eliminarUsuario(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.eliminarUsuario(id);
 }
 
 // Funciones helper para retos
 export async function crearReto(data: CrearRetoData) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.crearReto(data);
 }
 
 export async function obtenerRetos() {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerRetos();
 }
 
 export async function obtenerRetosActivos() {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerRetosActivos();
 }
 
 export async function obtenerReto(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.obtenerReto(id);
 }
 
 export async function actualizarReto(id: string, data: Partial<CrearRetoData>) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.actualizarReto(id, data);
 }
 
 export async function eliminarReto(id: string) {
-  const database = getDatabase();
+  const database = await getDatabase();
   return await database.eliminarReto(id);
 }
+
+// Funciones helper para planes de lectura
+export async function crearPlanLectura(data: CreatePlanData, userId: string) {
+  const database = await getDatabase();
+  return await database.crearPlanLectura(data, userId);
+}
+
+export async function obtenerPlanesLectura(
+  userId: string,
+  filter?: "official" | "my" | "public"
+) {
+  const database = await getDatabase();
+  return await database.obtenerPlanesLectura(userId, filter);
+}
+
+export async function obtenerPlanConProgreso(planId: string, userId: string) {
+  const database = await getDatabase();
+  return await database.obtenerPlanConProgreso(planId, userId);
+}
+
+export async function actualizarPlanLectura(
+  planId: string,
+  data: Partial<CreatePlanData>,
+  userId: string
+) {
+  const database = await getDatabase();
+  return await database.actualizarPlanLectura(planId, data, userId);
+}
+
+export async function eliminarPlanLectura(planId: string, userId: string) {
+  const database = await getDatabase();
+  return await database.eliminarPlanLectura(planId, userId);
+}
+
+export async function marcarCapituloCompletado(
+  chapterId: string,
+  userId: string,
+  completado: boolean
+) {
+  const database = await getDatabase();
+  return await database.marcarCapituloCompletado(chapterId, userId, completado);
+}
+
+// Exportar función de inicialización para uso externo
+export { initializeDatabase };
