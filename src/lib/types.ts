@@ -98,6 +98,16 @@ export interface MapaCoordenadas {
   y: number;
 }
 
+// Tipos para premios
+export interface Premio {
+  id: string;
+  nombre: string;
+  costo: number;
+  imagen?: string; // URL de la imagen o emoji
+  emoji?: string;
+}
+
+
 // Tipos para los componentes
 export interface MapaInteractivoProps {
   puntos: PuntoMapa[];
@@ -139,7 +149,7 @@ export const EMOJIS_COMUNES = [
   "🎯",
   "📍",
   "⭐",
-  "💎",
+  "🪙",
   "🌈",
   "🦋",
   "🌺",

@@ -12,6 +12,7 @@ export default function AdminUsuariosPage() {
     isLoading,
     usuario: currentUser,
     updateUser,
+    token, // Obtenemos el token desde el contexto
   } = useAuth();
   const router = useRouter();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -51,7 +52,11 @@ export default function AdminUsuariosPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/auth/usuarios");
+      const response = await fetch("/api/auth/usuarios", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data: ApiResponse<Usuario[]> = await response.json();
 
       if (data.success && data.data) {
@@ -114,6 +119,7 @@ export default function AdminUsuariosPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -149,6 +155,9 @@ export default function AdminUsuariosPage() {
 
       const response = await fetch(`/api/auth/usuarios?id=${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data: ApiResponse = await response.json();
@@ -186,6 +195,7 @@ export default function AdminUsuariosPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ puntuacion: nuevaPuntuacion }),
       });
@@ -460,11 +470,10 @@ export default function AdminUsuariosPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        usuario.rol === "admin"
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${usuario.rol === "admin"
                           ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                           : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
-                      }`}
+                        }`}
                     >
                       {usuario.rol}
                     </span>

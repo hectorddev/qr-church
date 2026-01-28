@@ -11,6 +11,7 @@ import React, {
 
 interface AuthContextType {
   usuario: Usuario | null;
+  token: string | null;
   isAdmin: boolean;
   isLoading: boolean;
   login: (data: LoginData) => Promise<AuthResponse>;
@@ -35,28 +36,48 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const isAdmin = usuario?.rol === "admin";
   const isAuthenticated = !!usuario;
 
   // Cargar usuario desde localStorage al inicializar
+  // Cargar usuario desde localStorage al inicializar
   useEffect(() => {
-    const loadUser = () => {
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const storedUser = localStorage.getItem("usuario");
-        if (storedUser) {
-          setUsuario(JSON.parse(storedUser));
+        // Verificar validez del token en el backend
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+        const result: AuthResponse = await response.json();
+
+        if (result.success && result.usuario) {
+          setUsuario(result.usuario);
+          setToken(storedToken);
+          localStorage.setItem("usuario", JSON.stringify(result.usuario));
+        } else {
+          // Token inválido o usuario borrado
+          throw new Error("Sesión inválida");
         }
       } catch (error) {
-        console.error("Error al cargar usuario:", error);
-        localStorage.removeItem("usuario");
+        console.error("Error validando sesión:", error);
+        logout(); // Limpiar todo
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUser();
+    initAuth();
   }, []);
 
   const login = async (data: LoginData): Promise<AuthResponse> => {
@@ -76,6 +97,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.usuario) {
         setUsuario(result.usuario);
         localStorage.setItem("usuario", JSON.stringify(result.usuario));
+
+        if (result.token) {
+          setToken(result.token);
+          localStorage.setItem("token", result.token);
+          document.cookie = `token=${result.token}; path=/; max-age=86400; SameSite=Strict`;
+        }
+
         return result;
       } else {
         return result;
@@ -93,7 +121,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUsuario(null);
+    setToken(null);
     localStorage.removeItem("usuario");
+    localStorage.removeItem("token");
+    document.cookie = "token=; path=/; max-age=0";
   };
 
   const updateUser = (updatedUser: Usuario) => {
@@ -104,6 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     usuario,
+    token,
     isAdmin,
     isLoading,
     login,

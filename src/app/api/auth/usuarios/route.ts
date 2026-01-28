@@ -10,8 +10,26 @@ import { NextRequest, NextResponse } from "next/server";
 // GET - Obtener todos los usuarios (solo admin)
 export async function GET(request: NextRequest) {
   try {
-    // En un proyecto real, aquí verificarías el token JWT y el rol de admin
-    // Por simplicidad, asumimos que si llega aquí es admin
+    // Verificar autenticación y rol
+    const { verifyToken } = await import("@/lib/auth-jwt");
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "No autorizado" },
+        { status: 401 }
+      );
+    }
+
+    const payload = await verifyToken(token);
+    // @ts-ignore
+    if (!payload || payload.rol !== "admin") {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "Permisos insuficientes" },
+        { status: 403 }
+      );
+    }
 
     const usuarios = await obtenerUsuarios();
 
@@ -34,6 +52,27 @@ export async function GET(request: NextRequest) {
 // POST - Crear nuevo usuario (solo admin)
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticación y rol
+    const { verifyToken } = await import("@/lib/auth-jwt");
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "No autorizado" },
+        { status: 401 }
+      );
+    }
+
+    const payload = await verifyToken(token);
+    // @ts-ignore
+    if (!payload || payload.rol !== "admin") {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "Permisos insuficientes" },
+        { status: 403 }
+      );
+    }
+
     const body: CrearUsuarioData = await request.json();
     const { nombre, versiculo_id, rol } = body;
 
@@ -121,8 +160,26 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // En un proyecto real, aquí verificarías el token JWT y el rol de admin
-    // Por simplicidad, asumimos que si llega aquí es admin
+    // Verificar autenticación y rol
+    const { verifyToken } = await import("@/lib/auth-jwt");
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "No autorizado" },
+        { status: 401 }
+      );
+    }
+
+    const payload = await verifyToken(token);
+    // @ts-ignore
+    if (!payload || payload.rol !== "admin") {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "Permisos insuficientes" },
+        { status: 403 }
+      );
+    }
 
     const usuario = await obtenerUsuario(id);
     if (!usuario) {

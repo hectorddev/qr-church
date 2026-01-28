@@ -15,6 +15,27 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { puntuacion } = body;
 
+    // Verificar autenticación y rol
+    const { verifyToken } = await import("@/lib/auth-jwt");
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "No autorizado" },
+        { status: 401 }
+      );
+    }
+
+    const payload = await verifyToken(token);
+    // @ts-ignore
+    if (!payload || payload.rol !== "admin") {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "Permisos insuficientes" },
+        { status: 403 }
+      );
+    }
+
     // Validar que la puntuación sea un número
     if (typeof puntuacion !== "number" || puntuacion < 0) {
       return NextResponse.json<ApiResponse>(

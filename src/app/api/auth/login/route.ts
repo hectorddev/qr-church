@@ -59,7 +59,13 @@ export async function POST(request: NextRequest) {
     }
 
     // En un proyecto real, aquí generarías un JWT token
-    const token = `token_${usuario.id}_${Date.now()}`;
+    // Generar JWT token
+    const { signToken } = await import("@/lib/auth-jwt");
+    const token = await signToken({
+      id: usuario.id,
+      rol: usuario.rol,
+      nombre: usuario.nombre
+    });
 
     return NextResponse.json<AuthResponse>({
       success: true,

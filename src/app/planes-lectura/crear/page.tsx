@@ -33,7 +33,7 @@ export default function CrearPlanPage() {
     const [nuevoCapitulo, setNuevoCapitulo] = useState(1);
     const [nuevaVersion, setNuevaVersion] = useState("NVI");
 
-    const emojis = ["📖", "✝️", "🙏", "📜", "⭐", "💎", "🕊️", "🔥", "💡", "❤️"];
+    const emojis = ["📖", "✝️", "🙏", "📜", "⭐", "🪙", "🕊️", "🔥", "💡", "❤️"];
     const versiones = getAvailableVersions();
 
     const agregarCapitulo = () => {
@@ -187,8 +187,8 @@ export default function CrearPlanPage() {
                                             key={e}
                                             onClick={() => setIcono(e)}
                                             className={`text-3xl p-3 rounded-lg border-2 transition-all ${icono === e
-                                                    ? "border-purple-500 bg-purple-50"
-                                                    : "border-gray-200 hover:border-purple-300"
+                                                ? "border-purple-500 bg-purple-50"
+                                                : "border-gray-200 hover:border-purple-300"
                                                 }`}
                                         >
                                             {e}

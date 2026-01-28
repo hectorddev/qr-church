@@ -12,6 +12,7 @@
 /env.example
 # testing
 /coverage
+package-lock.json
 
 # next.js
 /.next/
