@@ -46,7 +46,7 @@ const CATALOGO_PREMIOS: Premio[] = [
 ];
 
 export default function PremiosPage() {
-    const { usuario, isLoading } = useAuth();
+    const { usuario, isLoading, updateUser } = useAuth();
 
     if (isLoading) {
         return (
@@ -60,6 +60,31 @@ export default function PremiosPage() {
     }
 
     const puntosUsuario = usuario?.puntuacion || 0;
+
+    // Refrescar datos del usuario al entrar para asegurar que los puntos estén actualizados
+    React.useEffect(() => {
+        const refreshToken = async () => {
+            if (usuario?.id) {
+                try {
+                    const token = localStorage.getItem("token");
+                    if (!token) return;
+
+                    const response = await fetch("/api/auth/me", {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    const result = await response.json();
+                    if (result.success && result.usuario) {
+                        updateUser(result.usuario);
+                    }
+                } catch (error) {
+                    console.error("Error actualizando puntos:", error);
+                }
+            }
+        };
+        refreshToken();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
