@@ -2,6 +2,12 @@ import { actualizarReto, eliminarReto, obtenerReto } from "@/lib/database";
 import { ApiResponse, CrearRetoData } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
+// Función para validar URL de YouTube
+function isValidYouTubeUrl(url: string): boolean {
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+  return youtubeRegex.test(url);
+}
+
 interface RouteParams {
   params: Promise<{
     id: string;
@@ -98,6 +104,24 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.fecha_fin !== undefined)
       datosActualizacion.fecha_fin = new Date(body.fecha_fin);
     if (body.activo !== undefined) datosActualizacion.activo = body.activo;
+
+    // Validar y agregar video_url si se proporciona
+    if (body.video_url !== undefined) {
+      if (body.video_url && body.video_url.trim() !== "") {
+        if (!isValidYouTubeUrl(body.video_url)) {
+          return NextResponse.json<ApiResponse>(
+            {
+              success: false,
+              error: "La URL de YouTube no es válida. Usa formato: https://www.youtube.com/watch?v=... o https://youtu.be/...",
+            },
+            { status: 400 }
+          );
+        }
+        datosActualizacion.video_url = body.video_url;
+      } else {
+        datosActualizacion.video_url = undefined;
+      }
+    }
 
     const retoActualizado = await actualizarReto(id, datosActualizacion);
 

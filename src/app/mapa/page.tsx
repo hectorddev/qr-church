@@ -14,6 +14,7 @@ export default function MapaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<PuntoMapa | null>(null);
+  const [selectedReto, setSelectedReto] = useState<Reto | null>(null);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -67,10 +68,48 @@ export default function MapaPage() {
           .sort((a, b) => b.puntuacion - a.puntuacion)
           .slice(0, 3);
         setRanking(top3);
+      } else {
+        setRanking([]);
       }
     } catch (err) {
       console.error("Error loading ranking:", err);
     }
+  };
+
+  // Componente para embeber videos de YouTube
+  const YouTubeEmbed = ({ url }: { url: string }) => {
+    const extractVideoId = (url: string): string | null => {
+      // youtube.com/watch?v=VIDEO_ID
+      const watchMatch = url.match(/[?&]v=([^&]+)/);
+      if (watchMatch) return watchMatch[1];
+
+      // youtu.be/VIDEO_ID
+      const shortMatch = url.match(/youtu\.be\/([^?]+)/);
+      if (shortMatch) return shortMatch[1];
+
+      // youtube.com/embed/VIDEO_ID
+      const embedMatch = url.match(/youtube\.com\/embed\/([^?]+)/);
+      if (embedMatch) return embedMatch[1];
+
+      return null;
+    };
+
+    const videoId = extractVideoId(url);
+
+    if (!videoId) return null;
+
+    return (
+      <div className="relative w-full mb-4" style={{ paddingBottom: "56.25%" }}>
+        <iframe
+          className="absolute top-0 left-0 w-full h-full rounded-xl border-2 border-green-200"
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title="YouTube video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
   };
 
   const handlePointClick = (punto: PuntoMapa) => {
@@ -337,38 +376,51 @@ export default function MapaPage() {
                 {retos.map((reto) => (
                   <div
                     key={reto.id}
-                    className="bg-gradient-to-r from-white to-green-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    onClick={() => setSelectedReto(reto)}
+                    className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-200 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
                   >
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <span className="text-2xl sm:text-3xl">🎯</span>
-                      <h3 className="font-black text-green-800 text-lg sm:text-xl">
-                        {reto.titulo}
-                      </h3>
-                    </div>
-
-                    <p className="text-gray-700 font-medium mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
+                    <h3 className="text-xl font-black text-green-800 mb-4">
+                      🎯 {reto.titulo}
+                    </h3>
+                    <p className="text-gray-700 mb-4 text-sm leading-relaxed line-clamp-3">
                       {reto.descripcion}
                     </p>
 
-                    <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
-                      <p>
-                        <strong>📅 Inicio:</strong>{" "}
-                        {new Date(reto.fecha_inicio).toLocaleDateString()}
+                    {/* Video de YouTube si existe */}
+                    {reto.video_url && (
+                      <YouTubeEmbed url={reto.video_url} />
+                    )}
+
+                    <div className="flex flex-col gap-2 mb-4">
+                      <p className="text-xs text-gray-600">
+                        <strong className="font-bold text-green-700">📅 Inicio:</strong>{" "}
+                        {new Date(reto.fecha_inicio).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </p>
-                      <p>
-                        <strong>📅 Fin:</strong>{" "}
-                        {new Date(reto.fecha_fin).toLocaleDateString()}
+                      <p className="text-xs text-gray-600">
+                        <strong className="font-bold text-green-700">📅 Fin:</strong>{" "}
+                        {new Date(reto.fecha_fin).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </p>
                     </div>
 
-                    <div className="mt-3 sm:mt-4 flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                       <span
-                        className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${reto.activo
-                            ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                            : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${reto.activo
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : "bg-gray-100 text-gray-600 border border-gray-300"
                           }`}
                       >
-                        {reto.activo ? "Activo" : "Finalizado"}
+                        {reto.activo ? "✅ Activo" : "❌ Finalizado"}
+                      </span>
+                      <span className="text-xs text-green-600 font-bold">
+                        👆 Click para ver más
                       </span>
                     </div>
                   </div>
@@ -434,18 +486,18 @@ export default function MapaPage() {
                   <div
                     key={usuario.id}
                     className={`text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border-2 transform transition-all duration-300 hover:scale-105 w-full sm:w-auto max-w-xs ${index === 0
-                        ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300"
-                        : index === 1
-                          ? "bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300"
-                          : "bg-gradient-to-r from-orange-100 to-red-100 border-orange-300"
+                      ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300"
+                      : index === 1
+                        ? "bg-gradient-to-r from-gray-100 to-slate-100 border-gray-300"
+                        : "bg-gradient-to-r from-orange-100 to-red-100 border-orange-300"
                       }`}
                   >
                     <div
                       className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 ${index === 0
-                          ? "text-yellow-500"
-                          : index === 1
-                            ? "text-gray-500"
-                            : "text-orange-500"
+                        ? "text-yellow-500"
+                        : index === 1
+                          ? "text-gray-500"
+                          : "text-orange-500"
                         }`}
                     >
                       {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
@@ -477,11 +529,155 @@ export default function MapaPage() {
               Principios del Camino
             </p>
             <p className="text-xs sm:text-sm text-purple-500 mt-1 sm:mt-2">
-              &copy; 2025 - Pampanos
+              &copy; 2026 - Pampanos
             </p>
           </div>
         </div>
       </footer>
+
+      {/* Modal de Detalles del Reto */}
+      {selectedReto && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedReto(null)}
+        >
+          <div
+            className="bg-gradient-to-br from-white via-green-50 to-emerald-50 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border-4 border-green-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-3xl border-b-4 border-green-400 z-10">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h2 className="text-2xl sm:text-3xl font-black mb-2">
+                    🎯 {selectedReto.titulo}
+                  </h2>
+                  <span
+                    className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${selectedReto.activo
+                      ? "bg-white text-green-700"
+                      : "bg-gray-200 text-gray-700"
+                      }`}
+                  >
+                    {selectedReto.activo ? "✅ Activo" : "❌ Finalizado"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedReto(null)}
+                  className="ml-4 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all"
+                  aria-label="Cerrar"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 sm:p-6 space-y-6">
+              {/* Video de YouTube si existe */}
+              {selectedReto.video_url && (
+                <div>
+                  <h3 className="text-lg font-bold text-green-800 mb-3">
+                    🎥 Video del Reto
+                  </h3>
+                  <YouTubeEmbed url={selectedReto.video_url} />
+                </div>
+              )}
+
+              {/* Iframe si existe */}
+              {selectedReto.iframe_content && (
+                <div>
+                  <h3 className="text-lg font-bold text-green-800 mb-3">
+                    🧩 Contenido Interactivo
+                  </h3>
+                  <div
+                    className="w-full h-80 bg-gray-100 rounded-xl overflow-hidden border-2 border-green-200"
+                    dangerouslySetInnerHTML={{
+                      __html: selectedReto.iframe_content,
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Descripción */}
+              <div>
+                <h3 className="text-lg font-bold text-green-800 mb-3">
+                  📝 Descripción
+                </h3>
+                <p className="text-gray-700 leading-relaxed bg-white p-4 rounded-xl border-2 border-green-200">
+                  {selectedReto.descripcion}
+                </p>
+              </div>
+
+              {/* Fechas */}
+              <div>
+                <h3 className="text-lg font-bold text-green-800 mb-3">
+                  📅 Fechas del Reto
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-xl border-2 border-green-200">
+                    <p className="text-xs text-gray-500 font-semibold mb-1">
+                      Fecha de Inicio
+                    </p>
+                    <p className="text-base sm:text-lg font-bold text-green-700">
+                      {new Date(selectedReto.fecha_inicio).toLocaleDateString("es-ES", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border-2 border-green-200">
+                    <p className="text-xs text-gray-500 font-semibold mb-1">
+                      Fecha de Fin
+                    </p>
+                    <p className="text-base sm:text-lg font-bold text-red-600">
+                      {new Date(selectedReto.fecha_fin).toLocaleDateString("es-ES", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6 rounded-xl text-center">
+                <p className="text-xl sm:text-2xl font-black mb-2">
+                  🎯 ¡Acepta el Reto!
+                </p>
+                <p className="text-sm opacity-90">
+                  Participa en este reto espiritual y gana puntos en tu perfil
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-green-50 p-4 border-t-2 border-green-200 rounded-b-3xl z-10">
+              <button
+                onClick={() => setSelectedReto(null)}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

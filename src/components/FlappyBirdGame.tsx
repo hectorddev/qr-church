@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 export default function FlappyBirdGame() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { usuario, updateUser } = useAuth();
+    const { isAuthenticated, isLoading, usuario, token, updateUser } = useAuth();
     const router = useRouter();
 
     const [gameState, setGameState] = useState<"START" | "READY" | "PLAYING" | "GAME_OVER">("START");
@@ -20,13 +20,13 @@ export default function FlappyBirdGame() {
     const POINTS_PER_MILESTONE = 25;
 
     // Game constants - base values (will be adjusted by difficulty)
-    const BASE_GRAVITY = 0.6;
-    const BASE_JUMP = -8;
-    const BASE_PIPE_SPEED = 2.2; // Slower than before (was 3)
-    const BASE_PIPE_SPAWN_RATE = 1800; // Slower spawn rate (was 1500)
+    const BASE_GRAVITY = 0.5; // Reduced for mobile (was 0.6)
+    const BASE_JUMP = -7; // More controllable jump (was -8)
+    const BASE_PIPE_SPEED = 1.8; // Slower for mobile (was 2.2)
+    const BASE_PIPE_SPAWN_RATE = 2000; // More time between pipes (was 1800)
     const BIRD_SIZE = 30;
     const PIPE_WIDTH = 60;
-    const BASE_PIPE_GAP = 170;
+    const BASE_PIPE_GAP = 200; // Larger gap for easier passage (was 170)
 
     // Difficulty multipliers
     const difficultySettings = {
@@ -166,8 +166,8 @@ export default function FlappyBirdGame() {
         const birdRect = {
             x: 50,
             y: birdY.current,
-            width: BIRD_SIZE - 10, // Hitbox slightly smaller
-            height: BIRD_SIZE - 10
+            width: BIRD_SIZE - 15, // More forgiving hitbox for mobile (was -10)
+            height: BIRD_SIZE - 15
         };
 
         // Floor/Ceiling collision
@@ -296,6 +296,7 @@ export default function FlappyBirdGame() {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify({ puntuacion: newTotal }),
             });
@@ -352,7 +353,7 @@ export default function FlappyBirdGame() {
                                 Toca la pantalla o haz clic para volar.<br />
                                 ¡Esquiva los túneles y alcanza hitos!
                             </p>
-                            
+
                             {/* Difficulty Selector */}
                             <div className="bg-purple-50 rounded-xl p-4 mb-4 border-2 border-purple-100">
                                 <p className="text-sm font-bold text-purple-700 mb-3">⚙️ Dificultad</p>
@@ -362,11 +363,10 @@ export default function FlappyBirdGame() {
                                             e.stopPropagation();
                                             setDifficulty("FACIL");
                                         }}
-                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                                            difficulty === "FACIL"
-                                                ? "bg-green-500 text-white shadow-lg"
-                                                : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
-                                        }`}
+                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${difficulty === "FACIL"
+                                            ? "bg-green-500 text-white shadow-lg"
+                                            : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
+                                            }`}
                                     >
                                         Fácil
                                     </button>
@@ -375,11 +375,10 @@ export default function FlappyBirdGame() {
                                             e.stopPropagation();
                                             setDifficulty("MEDIO");
                                         }}
-                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                                            difficulty === "MEDIO"
-                                                ? "bg-yellow-500 text-white shadow-lg"
-                                                : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
-                                        }`}
+                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${difficulty === "MEDIO"
+                                            ? "bg-yellow-500 text-white shadow-lg"
+                                            : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
+                                            }`}
                                     >
                                         Medio
                                     </button>
@@ -388,11 +387,10 @@ export default function FlappyBirdGame() {
                                             e.stopPropagation();
                                             setDifficulty("DIFICIL");
                                         }}
-                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                                            difficulty === "DIFICIL"
-                                                ? "bg-red-500 text-white shadow-lg"
-                                                : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
-                                        }`}
+                                        className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${difficulty === "DIFICIL"
+                                            ? "bg-red-500 text-white shadow-lg"
+                                            : "bg-white text-gray-600 border-2 border-gray-300 hover:bg-gray-50"
+                                            }`}
                                     >
                                         Difícil
                                     </button>
@@ -423,7 +421,7 @@ export default function FlappyBirdGame() {
 
                 {/* Ready Screen - Tap to Start */}
                 {gameState === "READY" && (
-                    <div 
+                    <div
                         className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm cursor-pointer"
                         onClick={jump}
                     >
@@ -438,8 +436,8 @@ export default function FlappyBirdGame() {
                             <div className="mt-4 text-sm text-purple-500 font-semibold">
                                 Dificultad: {
                                     difficulty === "FACIL" ? "🟢 Fácil" :
-                                    difficulty === "MEDIO" ? "🟡 Medio" :
-                                    "🔴 Difícil"
+                                        difficulty === "MEDIO" ? "🟡 Medio" :
+                                            "🔴 Difícil"
                                 }
                             </div>
                         </div>

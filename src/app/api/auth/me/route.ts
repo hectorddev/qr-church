@@ -1,7 +1,7 @@
 
 import { verifyToken } from "@/lib/auth-jwt";
 import { obtenerUsuario } from "@/lib/database";
-import { ApiResponse, Usuario } from "@/lib/types";
+import { AuthResponse } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         const token = authHeader?.split(" ")[1];
 
         if (!token) {
-            return NextResponse.json<ApiResponse>(
+            return NextResponse.json<AuthResponse>(
                 { success: false, error: "No autorizado" },
                 { status: 401 }
             );
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         const payload = await verifyToken(token);
 
         if (!payload || !payload.id) {
-            return NextResponse.json<ApiResponse>(
+            return NextResponse.json<AuthResponse>(
                 { success: false, error: "Token inválido" },
                 { status: 401 }
             );
@@ -30,19 +30,19 @@ export async function GET(request: NextRequest) {
         const usuario = await obtenerUsuario(payload.id);
 
         if (!usuario) {
-            return NextResponse.json<ApiResponse>(
+            return NextResponse.json<AuthResponse>(
                 { success: false, error: "Usuario no encontrado" },
                 { status: 404 }
             );
         }
 
-        return NextResponse.json<ApiResponse<Usuario>>({
+        return NextResponse.json<AuthResponse>({
             success: true,
-            data: usuario,
+            usuario: usuario,
         });
     } catch (error) {
         console.error("Error en validación de sesión:", error);
-        return NextResponse.json<ApiResponse>(
+        return NextResponse.json<AuthResponse>(
             { success: false, error: "Error interno" },
             { status: 500 }
         );

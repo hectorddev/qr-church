@@ -38,6 +38,8 @@ export interface Reto {
   fecha_inicio: Date;
   fecha_fin: Date;
   activo: boolean;
+  video_url?: string;
+  iframe_content?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +50,8 @@ export interface CrearRetoData {
   fecha_inicio: Date;
   fecha_fin: Date;
   activo?: boolean;
+  video_url?: string;
+  iframe_content?: string;
 }
 
 export interface ApiResponse<T = any> {

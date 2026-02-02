@@ -59,7 +59,9 @@ class MongoDatabase {
       descripcion: doc.descripcion,
       fecha_inicio: doc.fecha_inicio ? new Date(doc.fecha_inicio) : new Date(),
       fecha_fin: doc.fecha_fin ? new Date(doc.fecha_fin) : new Date(),
-      activo: !!doc.activo,
+      activo: doc.activo ?? false,
+      video_url: doc.video_url ?? undefined,
+      iframe_content: doc.iframe_content ?? undefined,
       createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
       updatedAt: doc.updatedAt ? new Date(doc.updatedAt) : new Date(),
     };
@@ -201,6 +203,8 @@ class MongoDatabase {
       fecha_inicio: data.fecha_inicio,
       fecha_fin: data.fecha_fin,
       activo: data.activo !== undefined ? data.activo : true,
+      video_url: data.video_url || undefined,
+      iframe_content: data.iframe_content || undefined,
       createdAt: now,
       updatedAt: now,
     };
