@@ -18,6 +18,8 @@ export default function AdminRetosPage() {
     fecha_inicio: new Date(),
     fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días por defecto
     activo: true,
+    video_url: "",
+    iframe_content: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -136,6 +138,7 @@ export default function AdminRetosPage() {
           fecha_inicio: new Date(),
           fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           activo: true,
+          iframe_content: "",
         });
         setShowForm(false);
         setEditingReto(null);
@@ -156,9 +159,11 @@ export default function AdminRetosPage() {
     setFormData({
       titulo: reto.titulo,
       descripcion: reto.descripcion,
-      fecha_inicio: reto.fecha_inicio,
-      fecha_fin: reto.fecha_fin,
+      fecha_inicio: new Date(reto.fecha_inicio),
+      fecha_fin: new Date(reto.fecha_fin),
       activo: reto.activo,
+      video_url: reto.video_url || "",
+      iframe_content: reto.iframe_content || "",
     });
     setShowForm(true);
   };
@@ -201,6 +206,8 @@ export default function AdminRetosPage() {
       fecha_inicio: new Date(),
       fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       activo: true,
+      video_url: "",
+      iframe_content: "",
     });
   };
 
@@ -344,6 +351,52 @@ export default function AdminRetosPage() {
                 />
               </div>
 
+              {/* Campo Video URL */}
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="video_url"
+                  className="block text-sm font-bold text-gray-700 mb-2"
+                >
+                  🎥 Video de YouTube (opcional)
+                </label>
+                <input
+                  type="url"
+                  id="video_url"
+                  name="video_url"
+                  value={formData.video_url || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  disabled={submitting}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Pega el enlace de YouTube o YouTube Shorts para mostrar un video en el reto
+                </p>
+              </div>
+
+              {/* Campo Iframe Content */}
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="iframe_content"
+                  className="block text-sm font-bold text-gray-700 mb-2"
+                >
+                  🧩 Iframe Embebido (opcional)
+                </label>
+                <textarea
+                  id="iframe_content"
+                  name="iframe_content"
+                  value={formData.iframe_content || ""}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-green-200 focus:border-green-500 focus:outline-none transition-colors font-mono text-sm"
+                  placeholder='<iframe src="..."></iframe>'
+                  disabled={submitting}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Pega aquí el código iframe de otras aplicaciones para embeberlas
+                </p>
+              </div>
+
               <div>
                 <label
                   htmlFor="fecha_inicio"
@@ -412,8 +465,8 @@ export default function AdminRetosPage() {
                         ? "Actualizando..."
                         : "Creando..."
                       : editingReto
-                      ? "✅ Actualizar Reto"
-                      : "✅ Crear Reto"}
+                        ? "✅ Actualizar Reto"
+                        : "✅ Crear Reto"}
                   </button>
                   <button
                     type="button"
@@ -454,11 +507,10 @@ export default function AdminRetosPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        reto.activo
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                          : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${reto.activo
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                        : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+                        }`}
                     >
                       {reto.activo ? "Activo" : "Inactivo"}
                     </span>

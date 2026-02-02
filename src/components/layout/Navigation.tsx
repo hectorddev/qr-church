@@ -20,12 +20,13 @@ export default function Navigation() {
       icon: '📍',
       desktopClass: 'bg-gradient-to-r from-yellow-400 to-pink-400',
     },
-    {
-      href: '/planes-lectura',
-      label: 'Planes',
-      icon: '📖',
-      desktopClass: 'bg-gradient-to-r from-orange-400 to-red-400',
-    },
+    // Planes de lectura temporalmente oculto - pendiente de implementación
+    // {
+    //   href: '/planes-lectura',
+    //   label: 'Planes',
+    //   icon: '📖',
+    //   desktopClass: 'bg-gradient-to-r from-orange-400 to-red-400',
+    // },
     {
       href: '/premios',
       label: 'Premios',
@@ -77,8 +78,8 @@ export default function Navigation() {
                     key={link.href}
                     href={link.href}
                     className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${isActive(link.href)
-                        ? `${link.desktopClass} text-white shadow-md`
-                        : 'text-purple-100 hover:text-white hover:bg-white/20'
+                      ? `${link.desktopClass} text-white shadow-md`
+                      : 'text-purple-100 hover:text-white hover:bg-white/20'
                       }`}
                   >
                     <span className="mr-1.5">{link.icon}</span>
@@ -100,8 +101,8 @@ export default function Navigation() {
                       key={link.href}
                       href={link.href}
                       className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${isActive(link.href)
-                          ? `${link.desktopClass} text-white shadow-md`
-                          : 'text-purple-100 hover:text-white hover:bg-white/20'
+                        ? `${link.desktopClass} text-white shadow-md`
+                        : 'text-purple-100 hover:text-white hover:bg-white/20'
                         }`}
                     >
                       <span className="mr-1.5">{link.icon}</span>

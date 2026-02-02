@@ -28,10 +28,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const payload = await verifyToken(token);
-    // @ts-ignore
-    if (!payload || payload.rol !== "admin") {
+    if (!payload) {
       return NextResponse.json<ApiResponse>(
-        { success: false, error: "Permisos insuficientes" },
+        { success: false, error: "Token inválido" },
+        { status: 401 }
+      );
+    }
+
+    // @ts-ignore
+    const isAdmin = payload.rol === "admin";
+    // @ts-ignore
+    const isOwner = payload.id === id;
+
+    // Only allow if user is admin OR updating their own score
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "No puedes modificar la puntuación de otro usuario" },
         { status: 403 }
       );
     }
