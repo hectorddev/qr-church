@@ -17,10 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "El Pan de Vida",
+  title: "Pampanos",
   description: "Una Verdad para tu Vida",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   themeColor: "#1a365d",
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {
