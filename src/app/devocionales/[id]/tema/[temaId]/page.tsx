@@ -29,12 +29,6 @@ function minutosEstimados(lectura: LecturaDia): number {
   return Math.max(3, Math.min(25, Math.ceil(n * 2.5)));
 }
 
-function plainSnippet(text: string, max = 120) {
-  const t = text.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\s+/g, " ").trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max).trim()}…`;
-}
-
 export default function DevocionalTemaLecturasPage() {
   const params = useParams();
   const id = params.id as string;
@@ -194,7 +188,6 @@ export default function DevocionalTemaLecturasPage() {
               const pr = prog[lec.id];
               const pct = pr?.porcentaje ?? 0;
               const min = minutosEstimados(lec);
-              const desc = plainSnippet(lec.descripcion || "", 100);
               const acceso = lecturaDisponibleParaUsuario(
                 dev,
                 tema,
@@ -205,7 +198,7 @@ export default function DevocionalTemaLecturasPage() {
 
               const cardInner = (
                 <>
-                  <div className="aspect-[4/3] w-full bg-gradient-to-br from-[#2a9d8f] to-[#264653] overflow-hidden relative">
+                  <div className="aspect-[16/10] sm:aspect-[4/3] w-full bg-gradient-to-br from-[#2a9d8f] to-[#264653] overflow-hidden relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={img}
@@ -232,18 +225,11 @@ export default function DevocionalTemaLecturasPage() {
                       </div>
                     ) : null}
                   </div>
-                  <div className="p-4 flex flex-col flex-1 min-h-0">
+                  <div className="p-3 sm:p-4 flex flex-col flex-1 min-h-0">
                     <h2 className="font-serif text-lg font-bold text-stone-900 leading-snug line-clamp-2">
                       {lec.titulo}
                     </h2>
-                    {desc ? (
-                      <p className="text-xs text-stone-600 mt-2 line-clamp-3 leading-relaxed flex-1">
-                        {desc}
-                      </p>
-                    ) : (
-                      <div className="flex-1" />
-                    )}
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-3 space-y-2">
                       <div className="flex justify-between items-center text-[11px] font-semibold uppercase tracking-wide">
                         <span
                           className={
