@@ -9,6 +9,8 @@ export default function Navigation() {
   const pathname = usePathname();
   const { isAuthenticated, isAdmin, usuario, logout } = useAuth();
 
+  const enDevocionales = pathname?.startsWith("/devocionales") ?? false;
+
   const isActive = (path: string) => {
     return pathname === path || (path !== '/' && pathname?.startsWith(path));
   };
@@ -19,6 +21,12 @@ export default function Navigation() {
       label: 'Principios',
       icon: '📍',
       desktopClass: 'bg-gradient-to-r from-yellow-400 to-pink-400',
+    },
+    {
+      href: '/devocionales',
+      label: 'Devocionales',
+      icon: '📿',
+      desktopClass: 'bg-gradient-to-r from-sky-400 to-indigo-400',
     },
     // Planes de lectura temporalmente oculto - pendiente de implementación
     // {
@@ -49,6 +57,12 @@ export default function Navigation() {
         icon: '👥',
         desktopClass: 'bg-gradient-to-r from-blue-400 to-indigo-400',
       },
+      {
+        href: '/admin/devocionales',
+        label: 'Gestionar devocionales',
+        icon: '📿',
+        desktopClass: 'bg-gradient-to-r from-teal-400 to-cyan-400',
+      },
     ]
     : [];
 
@@ -57,7 +71,13 @@ export default function Navigation() {
   return (
     <>
       {/* ================= DESKTOP NAVIGATION (Top Bar) ================= */}
-      <nav className="hidden lg:block bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-lg border-b-2 border-purple-400/30 sticky top-0 z-50">
+      <nav
+        className={
+          enDevocionales
+            ? "hidden lg:block bg-stone-900 border-b border-stone-700 shadow-md sticky top-0 z-50"
+            : "hidden lg:block bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-lg border-b-2 border-purple-400/30 sticky top-0 z-50"
+        }
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
@@ -78,8 +98,12 @@ export default function Navigation() {
                     key={link.href}
                     href={link.href}
                     className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${isActive(link.href)
-                      ? `${link.desktopClass} text-white shadow-md`
-                      : 'text-purple-100 hover:text-white hover:bg-white/20'
+                      ? enDevocionales
+                        ? "bg-stone-700 text-white shadow-md"
+                        : `${link.desktopClass} text-white shadow-md`
+                      : enDevocionales
+                        ? "text-stone-300 hover:text-white hover:bg-white/10"
+                        : "text-purple-100 hover:text-white hover:bg-white/20"
                       }`}
                   >
                     <span className="mr-1.5">{link.icon}</span>
@@ -101,8 +125,12 @@ export default function Navigation() {
                       key={link.href}
                       href={link.href}
                       className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${isActive(link.href)
-                        ? `${link.desktopClass} text-white shadow-md`
-                        : 'text-purple-100 hover:text-white hover:bg-white/20'
+                        ? enDevocionales
+                          ? "bg-stone-700 text-white shadow-md"
+                          : `${link.desktopClass} text-white shadow-md`
+                        : enDevocionales
+                          ? "text-stone-300 hover:text-white hover:bg-white/10"
+                          : "text-purple-100 hover:text-white hover:bg-white/20"
                         }`}
                     >
                       <span className="mr-1.5">{link.icon}</span>
@@ -113,14 +141,26 @@ export default function Navigation() {
               )}
 
               {/* User Section */}
-              <div className="h-6 w-px bg-purple-400/50 mx-2" />
+              <div
+                className={`h-6 w-px mx-2 ${enDevocionales ? "bg-stone-600/60" : "bg-purple-400/50"}`}
+              />
               <div className="flex items-center gap-3">
-                <span className="text-purple-100 text-sm font-medium px-3 py-1.5 bg-white/10 rounded-lg">
+                <span
+                  className={
+                    enDevocionales
+                      ? "text-stone-200 text-sm font-medium px-3 py-1.5 bg-white/10 rounded-lg"
+                      : "text-purple-100 text-sm font-medium px-3 py-1.5 bg-white/10 rounded-lg"
+                  }
+                >
                   👋 {usuario?.nombre}
                 </span>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-100 hover:text-white hover:bg-white/20"
+                  className={
+                    enDevocionales
+                      ? "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-stone-300 hover:text-white hover:bg-white/10"
+                      : "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-purple-100 hover:text-white hover:bg-white/20"
+                  }
                 >
                   🚪 Salir
                 </button>
@@ -133,7 +173,13 @@ export default function Navigation() {
       {/* ================= MOBILE NAVIGATION ================= */}
 
       {/* Mobile Top Bar (Solo Logo) */}
-      <div className="lg:hidden fixed top-0 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-md z-40 h-16 flex items-center justify-center">
+      <div
+        className={
+          enDevocionales
+            ? "lg:hidden fixed top-0 w-full bg-stone-900 border-b border-stone-700 shadow-md z-40 h-16 flex items-center justify-center"
+            : "lg:hidden fixed top-0 w-full bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-md z-40 h-16 flex items-center justify-center"
+        }
+      >
         <Link
           href="/"
           className="text-2xl font-black text-white bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent"
@@ -153,8 +199,13 @@ export default function Navigation() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center justify-center w-full h-full transition-colors ${active ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+                  active
+                    ? enDevocionales
+                      ? "text-stone-800"
+                      : "text-purple-600"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
               >
                 <span className={`text-2xl mb-0.5 transform transition-transform ${active ? 'scale-110' : ''}`}>
                   {link.icon}
