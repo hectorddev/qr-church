@@ -1,94 +1,86 @@
-// Script de prueba para verificar la conexión a MongoDB
-// Ejecutar con: node test-mongodb-connection.js
+/**
+ * Prueba de conexión a MongoDB Atlas (sin credenciales en el código).
+ *
+ * Desde la raíz del proyecto (Node 20+):
+ *   node --env-file=.env.local test-mongodb-connection.js
+ *
+ * O en PowerShell:
+ *   $env:MONGODB_URI="mongodb+srv://..."; node test-mongodb-connection.js
+ */
+const { MongoClient } = require("mongodb");
 
-const { MongoClient } = require('mongodb');
-const dns = require('dns').promises;
-
-// Tu URI con la contraseña
-const uri = 'mongodb+srv://hectordmv21_db_user:javascript@pampanos01.fj0fsa4.mongodb.net/?appName=Pampanos01';
-
-async function testDNS() {
-  console.log('🔍 Verificando resolución DNS...');
-  try {
-    const hostname = 'pampanos01.fj0fsa4.mongodb.net';
-    const addresses = await dns.resolve4(hostname);
-    console.log('✅ DNS resuelto correctamente:', addresses);
-    return true;
-  } catch (error) {
-    console.error('❌ Error resolviendo DNS:', error.message);
-    return false;
-  }
-}
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB_NAME || "pampanos";
 
 async function testConnection() {
-  console.log('\n🔌 Probando conexión a MongoDB...');
-  console.log('URI (sin mostrar contraseña):', uri.replace(/:[^:@]+@/, ':****@'));
-  
-  // Verificar DNS primero
-  const dnsOk = await testDNS();
-  if (!dnsOk) {
-    console.error('\n❌ No se puede resolver el DNS. Verifica tu conexión a internet.');
+  if (!uri) {
+    console.error(
+      "❌ Falta MONGODB_URI. Ejecuta: node --env-file=.env.local test-mongodb-connection.js"
+    );
     process.exit(1);
   }
-  
+
+  console.log("URI (oculta):", uri.replace(/:[^:@]+@/, ":****@"));
+  console.log("Base de datos:", dbName);
+
   const client = new MongoClient(uri, {
     tls: true,
-    connectTimeoutMS: 15000,
-    serverSelectionTimeoutMS: 15000,
-    socketTimeoutMS: 30000,
+    connectTimeoutMS: 20000,
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
   });
 
   try {
-    console.log('\n⏳ Intentando conectar (esto puede tardar hasta 15 segundos)...');
+    console.log("\n⏳ Conectando…");
     await client.connect();
-    console.log('✅ Conexión exitosa!');
-    
-    // Probar una operación simple
-    const db = client.db('pampanos');
+    console.log("✅ Conexión OK");
+
+    const db = client.db(dbName);
     const collections = await db.listCollections().toArray();
-    console.log('📚 Colecciones encontradas:', collections.length > 0 ? collections.map(c => c.name) : 'Ninguna');
-    
+    console.log(
+      "📚 Colecciones:",
+      collections.length ? collections.map((c) => c.name).join(", ") : "(ninguna)"
+    );
+
     await client.close();
-    console.log('\n✅ Prueba completada exitosamente');
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error de conexión:');
-    console.error('Tipo:', error.constructor.name);
-    console.error('Mensaje:', error.message);
-    
-    if (error.message.includes('authentication') || error.message.includes('auth')) {
-      console.error('\n💡 ERROR DE AUTENTICACIÓN:');
-      console.error('1. Verifica que la contraseña "javascript" sea correcta');
-      console.error('2. Asegúrate de que el usuario "hectordmv21_db_user" tenga permisos');
-      console.error('3. Si la contraseña tiene caracteres especiales, codifícala en URL');
-      console.error('   Ejemplo: @ → %40, # → %23, espacio → %20');
+    console.error("\n❌ Error:", error.constructor.name, "-", error.message);
+
+    if (
+      error.message.includes("Server selection") ||
+      error.message.includes("timed out")
+    ) {
+      console.error(`
+💡 "Server selection timed out" casi siempre es RED / ATLAS, no el nombre de la BD:
+
+1) MongoDB Atlas → Network Access
+   - Debe existir una regla que permita TU IP actual (o 0.0.0.0/0 solo para pruebas).
+   - Si tu IP cambió (ISP, reinicio de router), vuelve a "Add Current IP".
+
+2) Atlas → Database → tu cluster
+   - Estado "Active" / no pausado. Tras reanudar, espera 1–2 minutos.
+
+3) Firewall / antivirus / empresa / escuela
+   - Pueden bloquear salida hacia MongoDB. Prueba con datos móviles o otra red.
+
+4) VPN
+   - A veces la IP vista por Atlas es la del VPN; añade esa IP o desactiva VPN para probar.
+`);
     }
-    
-    if (error.message.includes('ECONNRESET') || error.message.includes('timeout') || error.message.includes('Server selection')) {
-      console.error('\n💡 ERROR DE CONEXIÓN/TIMEOUT:');
-      console.error('1. Verifica que tu IP esté en la whitelist de MongoDB Atlas:');
-      console.error('   - Ve a MongoDB Atlas Dashboard');
-      console.error('   - Network Access → Add IP Address');
-      console.error('   - Añade 0.0.0.0/0 para permitir todas las IPs (solo desarrollo)');
-      console.error('   - O añade tu IP específica');
-      console.error('2. Verifica que el cluster no esté pausado:');
-      console.error('   - Ve a MongoDB Atlas → Clusters');
-      console.error('   - Asegúrate de que el cluster esté activo (no pausado)');
-      console.error('3. Verifica tu conexión a internet');
-      console.error('4. Intenta desde otra red o usa un VPN');
-      console.error('5. Verifica que no haya un firewall bloqueando la conexión');
+
+    if (
+      error.message.includes("authentication") ||
+      error.message.includes("bad auth")
+    ) {
+      console.error(`
+💡 Usuario o contraseña incorrectos en la URI.
+   Codifica caracteres especiales en la contraseña (ej. @ → %40).
+`);
     }
-    
-    if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-      console.error('\n💡 ERROR DE DNS:');
-      console.error('1. Verifica tu conexión a internet');
-      console.error('2. Verifica que puedas resolver DNS');
-      console.error('3. Intenta desde otra red');
-    }
-    
+
     process.exit(1);
   }
 }
 
 testConnection();
-

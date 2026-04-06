@@ -45,10 +45,10 @@ export async function getMongoClient(): Promise<MongoClient> {
   const client = new MongoClient(uri, {
     tls: true,
     tlsAllowInvalidCertificates: true,
-    // Timeouts más apropiados
-    connectTimeoutMS: 10000, // 10 segundos para conectar
-    serverSelectionTimeoutMS: 10000, // 10 segundos para seleccionar servidor
-    socketTimeoutMS: 45000, // 45 segundos para operaciones
+    // Atlas / redes lentas o cluster recién reanudado: 10s suele disparar Server selection timed out
+    connectTimeoutMS: 20000,
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
     // Reintentos automáticos
     retryWrites: true,
     retryReads: true,
@@ -166,6 +166,29 @@ export async function ensureMongoIndexes() {
   await db.collection("retos").createIndexes([
     { key: { activo: 1, fecha_inicio: 1 }, name: "idx_retos_activo_inicio" },
     { key: { createdAt: -1 }, name: "idx_retos_createdAt" },
+  ]);
+
+  // Devocionales
+  await db.collection("devocionales").createIndexes([
+    { key: { activo: 1, orden: 1 }, name: "idx_devocionales_activo_orden" },
+    { key: { createdAt: -1 }, name: "idx_devocionales_createdAt" },
+  ]);
+
+  await db.collection("devocional_sesiones").createIndexes([
+    { key: { devocional_id: 1 }, name: "idx_dvs_devocional" },
+    { key: { usuario_iniciador_id: 1 }, name: "idx_dvs_iniciador" },
+    {
+      key: { usuario_pareja_id: 1, estado: 1 },
+      name: "idx_dvs_pareja_estado",
+    },
+  ]);
+
+  await db.collection("devocional_progreso").createIndexes([
+    {
+      key: { sesion_id: 1, user_id: 1 },
+      name: "uniq_dvp_sesion_user",
+      unique: true,
+    },
   ]);
 
   console.log("🧱 Índices de MongoDB verificados/creados");

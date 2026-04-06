@@ -229,3 +229,180 @@ export interface CreateChapterData {
   version: string;
   orden: number;
 }
+
+// --- Devocionales (tema padre + pasos / subtemas) ---
+
+export type DevocionalModoSesion = "solo" | "pareja";
+
+export type EstadoSesionDevocional = "activa" | "pendiente_pareja";
+
+export interface DevocionalVersiculo {
+  referencia: string;
+  texto?: string;
+}
+
+export type DevocionalCampoTipo = "texto" | "textarea";
+
+export interface DevocionalCampo {
+  id: string;
+  etiqueta: string;
+  tipo: DevocionalCampoTipo;
+}
+
+export interface DevocionalPreguntaReflexiva {
+  id: string;
+  tipo: "reflexiva";
+  texto: string;
+}
+
+export interface DevocionalPreguntaPuntuacion {
+  id: string;
+  tipo: "puntuacion";
+  texto: string;
+  opciones: { id: string; texto: string }[];
+  /** Solo en datos de admin / BD; no se envía al cliente público. */
+  opcion_correcta_id: string;
+  puntos?: number;
+}
+
+export type DevocionalPregunta =
+  | DevocionalPreguntaReflexiva
+  | DevocionalPreguntaPuntuacion;
+
+export interface DevocionalPaso {
+  id: string;
+  orden: number;
+  titulo: string;
+  descripcion?: string;
+  /** Reto práctico: se muestra en la sesión (actividades), no en la lectura del día. */
+  reto?: string;
+  versiculos: DevocionalVersiculo[];
+  campos: DevocionalCampo[];
+  preguntas: DevocionalPregunta[];
+}
+
+/** Una lectura concreta (día / subtema) dentro de un tema semanal */
+export interface LecturaDia {
+  id: string;
+  orden: number;
+  titulo: string;
+  descripcion: string;
+  imagen_url?: string;
+  /** Tiempo estimado en minutos (mostrado en grid) */
+  minutos_lectura?: number;
+  /** Día en que se desbloquea (inicio del día local). Si falta: inicio del tema + `orden` días. */
+  fecha_disponible?: string | Date | null;
+  pasos: DevocionalPaso[];
+}
+
+/** Tema = bloque temporal (p. ej. una semana) con varias lecturas */
+export interface TemaDevocional {
+  id: string;
+  orden: number;
+  titulo: string;
+  descripcion: string;
+  imagen_url?: string;
+  /** Si se define, sustituye la duración global del programa para este tema */
+  duracion_dias?: number;
+  /**
+   * Fecha en que el tema se muestra desbloqueado en el programa (inicio del día local).
+   * Si falta, se usa `fecha_inicio_programa` del programa + duraciones de temas anteriores.
+   */
+  fecha_activacion?: string | Date | null;
+  lecturas: LecturaDia[];
+}
+
+export interface Devocional {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  imagen_url?: string;
+  activo: boolean;
+  orden: number;
+  /** Días por tema si el tema no trae `duracion_dias` (por defecto 7) */
+  duracion_tema_dias: number;
+  /** Inicio del calendario del programa (tema activo por fechas) */
+  fecha_inicio_programa: Date | null;
+  temas: TemaDevocional[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CrearDevocionalData {
+  titulo: string;
+  descripcion: string;
+  imagen_url?: string;
+  activo?: boolean;
+  orden?: number;
+  duracion_tema_dias?: number;
+  fecha_inicio_programa?: string | Date | null;
+  temas: TemaDevocional[];
+}
+
+export interface DevocionalSesion {
+  id: string;
+  devocional_id: string;
+  /** Lectura asociada (omitida en sesiones antiguas → primera del programa) */
+  lectura_id: string | null;
+  modo: DevocionalModoSesion;
+  usuario_iniciador_id: string;
+  usuario_pareja_id: string | null;
+  estado: EstadoSesionDevocional;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DevocionalProgresoUsuario {
+  id: string;
+  sesion_id: string;
+  user_id: string;
+  pasos_completados: string[];
+  /** Clave: `${pasoId}:${campoId}` */
+  respuestas_campos: Record<string, string>;
+  /** Clave: `${pasoId}:${preguntaId}` — reflexiva: texto; puntuación: id de opción elegida */
+  respuestas_preguntas: Record<string, string>;
+  puntaje_puntuacion: number;
+  updatedAt: Date;
+}
+
+export interface CrearSesionDevocionalInput {
+  devocional_id: string;
+  lectura_id: string;
+  modo: DevocionalModoSesion;
+  /** Obligatorio si modo es pareja */
+  usuario_pareja_id?: string;
+}
+
+export interface GuardarProgresoDevocionalInput {
+  pasos_completados?: string[];
+  respuestas_campos?: Record<string, string>;
+  respuestas_preguntas?: Record<string, string>;
+}
+
+export interface DevocionalSesionDetalle {
+  sesion: DevocionalSesion;
+  lectura: LecturaDia;
+  tema_id: string;
+  tema_titulo: string;
+  programa: {
+    id: string;
+    titulo: string;
+    descripcion: string;
+    imagen_url?: string;
+  };
+  nombres: {
+    iniciador: string;
+    pareja: string | null;
+  };
+}
+
+/** Progreso por lectura en el tema actual (grid /devocionales/:id) */
+export type ResumenProgresoLecturas = Record<
+  string,
+  { porcentaje: number; sesion_id: string | null }
+>;
+
+export interface ProgresoDevocionalVista {
+  mio: DevocionalProgresoUsuario;
+  pareja: DevocionalProgresoUsuario | null;
+}
