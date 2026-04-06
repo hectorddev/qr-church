@@ -146,21 +146,34 @@ export default function DevocionalProgramaPage() {
             />
           </div>
         ) : null}
-        <p className="text-sm text-stone-600 mt-6 leading-relaxed">
-          {temasOrdenados.length} tema{temasOrdenados.length === 1 ? "" : "s"} ·
-          Cada tema puede tener una <strong>fecha de activación</strong> (admin).
-          Dentro del tema, las lecturas se abren <strong>día a día</strong> y al
-          completar la anterior al 100%.
-        </p>
       </div>
 
-      <div className="px-4 sm:px-1 mt-8">
+      {temasOrdenados.length > 0 ? (
+        <div className="px-4 sm:px-6 max-w-[40rem] mx-auto mt-10 sm:mt-12 mb-2">
+          <div className="rounded-2xl border-2 border-amber-400/70 bg-gradient-to-b from-amber-50 to-[#F5E6C8]/90 px-4 py-5 sm:py-4 text-center shadow-[0_12px_32px_-8px_rgba(120,80,20,0.2)]">
+            <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-amber-900/90">
+              Tus bloques del programa
+            </p>
+            <p className="mt-2 text-base sm:text-[0.95rem] font-semibold text-stone-900 leading-snug">
+              Desliza hacia abajo para ver cada tema y entrar a las lecturas
+            </p>
+            <div
+              className="mt-3 flex justify-center text-stone-800 text-3xl leading-none motion-safe:animate-bounce"
+              aria-hidden
+            >
+              ↓
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="px-4 sm:px-1 mt-6 sm:mt-8">
         {temasOrdenados.length === 0 ? (
           <p className="text-stone-600 text-sm">
             Este programa aún no tiene temas publicados.
           </p>
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-5 max-w-[40rem] sm:max-w-none mx-auto">
             {temasOrdenados.map((tema: TemaDevocional, i: number) => {
               const desbloqueado = temaDisponibleParaUsuario(dev, tema);
               const nLec = tema.lecturas?.length ?? 0;
@@ -212,7 +225,7 @@ export default function DevocionalProgramaPage() {
                         Bloque {i + 1}
                       </span>
                     </div>
-                    <h2 className="font-serif text-lg font-bold text-stone-900 leading-snug line-clamp-2">
+                    <h2 className="font-serif text-xl sm:text-lg font-bold text-stone-900 leading-snug line-clamp-2">
                       {tema.titulo}
                     </h2>
                     {desc ? (
@@ -245,12 +258,12 @@ export default function DevocionalProgramaPage() {
                   {desbloqueado ? (
                     <Link
                       href={`/devocionales/${id}/tema/${tema.id}`}
-                      className="group flex flex-col h-full rounded-2xl border border-stone-200/90 bg-white overflow-hidden shadow-md shadow-stone-900/5 hover:border-[#4DB6AC]/45 hover:shadow-lg transition-all"
+                      className="group flex flex-col h-full rounded-[1.25rem] sm:rounded-2xl border-2 border-stone-800/[0.12] sm:border-stone-200/90 bg-white overflow-hidden shadow-[0_22px_56px_-18px_rgba(28,25,23,0.38)] sm:shadow-md sm:shadow-stone-900/5 hover:border-[#2a9d8f]/50 hover:shadow-[0_20px_50px_-15px_rgba(42,157,143,0.35)] transition-all duration-200 active:scale-[0.985] sm:active:scale-100 ring-1 ring-black/[0.04] sm:ring-0"
                     >
                       {inner}
                     </Link>
                   ) : (
-                    <div className="flex flex-col h-full rounded-2xl border border-stone-200/70 bg-stone-50/80 overflow-hidden shadow-sm cursor-not-allowed opacity-95">
+                    <div className="flex flex-col h-full rounded-[1.25rem] sm:rounded-2xl border-2 border-stone-300/80 bg-stone-50/90 overflow-hidden shadow-[0_16px_40px_-14px_rgba(28,25,23,0.2)] sm:shadow-sm cursor-not-allowed opacity-[0.97]">
                       {inner}
                     </div>
                   )}
