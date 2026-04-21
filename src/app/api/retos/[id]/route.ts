@@ -104,6 +104,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.fecha_fin !== undefined)
       datosActualizacion.fecha_fin = new Date(body.fecha_fin);
     if (body.activo !== undefined) datosActualizacion.activo = body.activo;
+    if (body.iframe_content !== undefined)
+      datosActualizacion.iframe_content = body.iframe_content;
 
     // Validar y agregar video_url si se proporciona
     if (body.video_url !== undefined) {
