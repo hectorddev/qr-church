@@ -126,7 +126,7 @@ export function DevocionalVersiculoCallout({
         className={`absolute font-serif ${quoteColor} opacity-35 pointer-events-none select-none ${quotePos}`}
         aria-hidden
       >
-        “
+        &ldquo;
       </span>
       <blockquote className="relative z-10 font-serif text-[1.05rem] sm:text-lg text-stone-900 leading-snug pl-1">
         {versiculo.texto?.trim() ? (
@@ -134,7 +134,7 @@ export function DevocionalVersiculoCallout({
             <span>{versiculo.texto}</span>
             {versiculo.referencia ? (
               <cite className="mt-3 block not-italic text-sm font-sans font-semibold text-stone-700">
-                {versiculo.referencia}
+                — {versiculo.referencia}
               </cite>
             ) : null}
           </>
@@ -166,21 +166,81 @@ export function DevocionalSeccionTitulo({
   );
 }
 
+/** Badge de tipo de contenido para la sesión (Reto, Reflexión, etc.) */
+export function DevocionalTipoBadge({
+  tipo,
+}: {
+  tipo: "reto" | "campo" | "reflexion" | "puntuacion" | "versiculo";
+}) {
+  const config = {
+    reto: {
+      label: "Reto",
+      icon: "🎯",
+      className: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    },
+    campo: {
+      label: "Completa",
+      icon: "✏️",
+      className: "bg-amber-50 text-amber-800 border-amber-200",
+    },
+    reflexion: {
+      label: "Reflexión",
+      icon: "💭",
+      className: "bg-sky-50 text-sky-800 border-sky-200",
+    },
+    puntuacion: {
+      label: "Desafío",
+      icon: "⭐",
+      className: "bg-violet-50 text-violet-800 border-violet-200",
+    },
+    versiculo: {
+      label: "Versículo",
+      icon: "📖",
+      className: "bg-teal-50 text-teal-800 border-teal-200",
+    },
+  };
+  const { label, icon, className } = config[tipo];
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${className}`}
+    >
+      <span aria-hidden>{icon}</span>
+      {label}
+    </span>
+  );
+}
+
 export function DevocionalPreguntaReflexionCard({
   pregunta,
   value,
   onChange,
   disabled,
   placeholder = "Escribe tu respuesta…",
+  hasValue,
 }: {
   pregunta: string;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  hasValue?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200/90 bg-white p-4 sm:p-5 shadow-sm">
+    <div
+      className={`rounded-2xl border bg-white p-4 sm:p-5 shadow-sm transition-colors ${
+        hasValue
+          ? "border-emerald-300/70 bg-emerald-50/20"
+          : "border-stone-200/90"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <DevocionalTipoBadge tipo="reflexion" />
+        {hasValue && (
+          <span className="text-emerald-600 text-sm font-semibold shrink-0">
+            ✓
+          </span>
+        )}
+      </div>
       <p className="text-[0.95rem] sm:text-base font-medium text-stone-900 mb-3">
         {pregunta}
       </p>
@@ -212,8 +272,23 @@ export function DevocionalPreguntaTestCard({
   disabled?: boolean;
   puntos?: number;
 }) {
+  const hasValue = !!selectedId;
   return (
-    <div className="rounded-2xl border border-stone-200/90 bg-white p-4 sm:p-5 shadow-sm">
+    <div
+      className={`rounded-2xl border bg-white p-4 sm:p-5 shadow-sm transition-colors ${
+        hasValue
+          ? "border-emerald-300/70 bg-emerald-50/20"
+          : "border-stone-200/90"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <DevocionalTipoBadge tipo="puntuacion" />
+        {hasValue && (
+          <span className="text-emerald-600 text-sm font-semibold shrink-0">
+            ✓
+          </span>
+        )}
+      </div>
       <p className="text-[0.95rem] sm:text-base font-medium text-stone-900 mb-3">
         {pregunta}
       </p>
@@ -249,15 +324,31 @@ export function DevocionalCampoCard({
   value,
   onChange,
   disabled,
+  hasValue,
 }: {
   etiqueta: string;
   tipo: "texto" | "textarea";
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
+  hasValue?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200/90 bg-white p-4 sm:p-5 shadow-sm">
+    <div
+      className={`rounded-2xl border bg-white p-4 sm:p-5 shadow-sm transition-colors ${
+        hasValue
+          ? "border-emerald-300/70 bg-emerald-50/20"
+          : "border-stone-200/90"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <DevocionalTipoBadge tipo="campo" />
+        {hasValue && (
+          <span className="text-emerald-600 text-sm font-semibold shrink-0">
+            ✓
+          </span>
+        )}
+      </div>
       <label className="block text-[0.95rem] font-medium text-stone-900 mb-2">
         {etiqueta}
       </label>

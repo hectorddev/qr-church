@@ -210,11 +210,32 @@ export default function DevocionalTemaLecturasPage() {
                       }`}
                       loading="lazy"
                     />
+                    {/* Badge de número de día */}
+                    <span className="absolute top-2 left-2 z-10 rounded-full bg-stone-900/75 text-white text-[10px] font-bold px-2 py-1 backdrop-blur-sm">
+                      Día {li + 1}
+                    </span>
+                    {/* Checkmark cuando completado */}
+                    {pct >= 100 && (
+                      <span className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white text-sm shadow">
+                        ✓
+                      </span>
+                    )}
                     {!acceso.ok ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/50 text-white backdrop-blur-[2px] px-2">
-                        <span className="text-2xl mb-1" aria-hidden>
-                          🔒
-                        </span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/55 text-white backdrop-blur-[2px] px-3">
+                        <svg
+                          className="w-6 h-6 mb-1.5 opacity-90"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                          aria-hidden
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16.5 10.5V7a4.5 4.5 0 00-9 0v3.5M6 10.5h12a1.5 1.5 0 011.5 1.5v7A1.5 1.5 0 0118 20.5H6A1.5 1.5 0 014.5 19v-7A1.5 1.5 0 016 10.5z"
+                          />
+                        </svg>
                         <span className="text-[11px] font-bold uppercase text-center leading-tight">
                           {acceso.motivo === "anterior"
                             ? "Completa la lectura anterior"
@@ -247,14 +268,14 @@ export default function DevocionalTemaLecturasPage() {
                               : "text-stone-500 tabular-nums"
                           }
                         >
-                          {pct >= 100 ? "100% · Listo" : `${pct}%`}
+                          {pct >= 100 ? "✓ Completado" : `${pct}%`}
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-stone-200 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
                             pct >= 100
-                              ? "bg-emerald-600"
+                              ? "bg-emerald-500"
                               : "bg-gradient-to-r from-[#4DB6AC] to-[#2a9d8f]"
                           }`}
                           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -270,7 +291,7 @@ export default function DevocionalTemaLecturasPage() {
                           pct >= 100 ? "text-emerald-700" : "text-[#2a9d8f]"
                         }`}
                       >
-                        {pct >= 100 ? "Repasar o continuar →" : "Abrir lectura →"}
+                        {pct >= 100 ? "Repasar →" : "Abrir lectura →"}
                       </span>
                     ) : (
                       <span className="mt-3 text-xs text-stone-500 leading-snug">
