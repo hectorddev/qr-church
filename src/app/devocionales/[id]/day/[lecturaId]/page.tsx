@@ -3,6 +3,7 @@
 import {
   DevocionalCuerpoLectura,
   DevocionalTituloLectura,
+  DevocionalVersiculoCallout,
 } from "@/components/devocionales/DevocionalReadingUI";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -94,14 +95,18 @@ export default function DevocionalDiaPage() {
     dev?.imagen_url ||
     DEVOCIONAL_IMAGEN_TEMA_PRINCIPAL;
 
-  const pasosCount = lectura?.pasos?.length ?? 0;
+  const pasosOrdenados = useMemo(() => {
+    if (!lectura?.pasos) return [];
+    return [...lectura.pasos].sort((a, b) => a.orden - b.orden);
+  }, [lectura]);
+
+  const pasosCount = pasosOrdenados.length;
 
   const iniciarSesion = async () => {
     if (!token || !lectura) return;
     setSubmitting(true);
     setError(null);
     try {
-      /* Modo pareja deshabilitado por ahora: siempre lectura individual. */
       const body = {
         devocional_id: devId,
         lectura_id: lectura.id,
@@ -220,10 +225,16 @@ export default function DevocionalDiaPage() {
     lectura.minutos_lectura ??
     Math.max(3, Math.min(25, Math.ceil(pasosCount * 2.5)));
 
+  const tieneActividades = pasosOrdenados.some(
+    (p) =>
+      p.campos.length > 0 ||
+      p.preguntas.length > 0
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F6EE] -mx-4 sm:mx-0 pb-28 overflow-x-hidden">
+      {/* Hero */}
       <div className="w-screen ml-[calc(50%-50vw)] sm:ml-0 sm:w-full relative">
-        {/* Fundido inferior crema: sin tintes azules en el encabezado */}
         <div
           className="absolute inset-0 z-10 pointer-events-none h-full bg-gradient-to-t from-[#F9F6EE] via-[#F9F6EE]/25 to-transparent"
           aria-hidden
@@ -243,6 +254,7 @@ export default function DevocionalDiaPage() {
         />
       </div>
 
+      {/* Cabecera */}
       <div className="relative z-10 -mt-8 sm:-mt-10 rounded-t-[1.75rem] bg-[#F9F6EE] px-4 sm:px-6 pt-8 pb-2 shadow-[0_-10px_36px_rgba(28,25,23,0.06)] border-t border-stone-200/40">
         <div className="max-w-[40rem] mx-auto">
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -261,6 +273,8 @@ export default function DevocionalDiaPage() {
             variant="reading"
             className="mb-1"
           />
+
+          {/* Descripción general de la lectura */}
           {lectura.descripcion?.trim() ? (
             <div className="mt-6 rounded-2xl bg-white border border-stone-200/90 p-5 sm:p-7 shadow-[0_2px_20px_rgba(28,25,23,0.04)]">
               <DevocionalCuerpoLectura
@@ -269,17 +283,57 @@ export default function DevocionalDiaPage() {
               />
             </div>
           ) : null}
-          {pasosCount > 0 ? (
-            <p className="mt-6 text-base text-stone-600 leading-relaxed">
-              <span className="font-semibold text-stone-800">{pasosCount}</span>{" "}
-              paso{pasosCount === 1 ? "" : "s"} con actividades en la sesión
-              (campos, preguntas y marca de completado). El 100% exige cada paso
-              marcado y con las respuestas rellenadas.
-            </p>
-          ) : null}
         </div>
       </div>
 
+      {/* Contenido de pasos: descripción + versículos */}
+      {pasosOrdenados.length > 0 && (
+        <div className="px-4 sm:px-6 mt-8 space-y-10 max-w-[40rem] mx-auto">
+          {pasosOrdenados.map((paso, idx) => {
+            const tieneContenido =
+              paso.descripcion?.trim() || paso.versiculos?.length > 0;
+            if (!tieneContenido) return null;
+            return (
+              <div key={paso.id} className="space-y-4">
+                {/* Título del paso si hay varios */}
+                {pasosOrdenados.length > 1 && paso.titulo?.trim() ? (
+                  <div className="flex items-center gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-stone-800 text-[#FAF7F0] text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <h2 className="font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug">
+                      {paso.titulo}
+                    </h2>
+                  </div>
+                ) : null}
+
+                {/* Descripción del paso */}
+                {paso.descripcion?.trim() ? (
+                  <DevocionalCuerpoLectura
+                    texto={paso.descripcion}
+                    variant="reading"
+                  />
+                ) : null}
+
+                {/* Versículos bíblicos del paso */}
+                {paso.versiculos?.length > 0 && (
+                  <div className="space-y-3">
+                    {paso.versiculos.map((v, vi) => (
+                      <DevocionalVersiculoCallout
+                        key={v.referencia ?? vi}
+                        versiculo={v}
+                        variant={vi % 2 === 0 ? "teal" : "amber"}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* CTA de sesión */}
       <div className="px-4 sm:px-6 mt-10 space-y-6 max-w-[40rem] mx-auto">
         {error && (
           <div className="rounded-2xl bg-red-50 text-red-800 px-4 py-3 text-sm border border-red-100">
@@ -287,41 +341,41 @@ export default function DevocionalDiaPage() {
           </div>
         )}
 
-        {sesionEstaLectura ? (
-          <div className="rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 shadow-[0_2px_24px_rgba(28,25,23,0.06)] space-y-5">
-            <p className="text-base text-stone-600 leading-[1.65]">
-              Ya tienes una sesión de actividades para esta lectura. Puedes seguir
-              donde la dejaste.
-            </p>
-            <Link
-              href={`/devocionales/sesion/${sesionEstaLectura.id}`}
-              className={btnDevocionalPrimario}
-            >
-              Continuar sesión →
-            </Link>
-          </div>
-        ) : (
-          <section className="rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 shadow-[0_2px_24px_rgba(28,25,23,0.06)] space-y-5">
-            <div>
-              <h2 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
-                Comenzar
-              </h2>
-              <p className="text-base text-stone-600 mt-2 leading-[1.65]">
-                Abre la sesión para responder y guardar; el texto principal de
-                la lectura está arriba en esta misma pantalla.
+        {tieneActividades ? (
+          sesionEstaLectura ? (
+            <div className="rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 shadow-[0_2px_24px_rgba(28,25,23,0.06)] space-y-5">
+              <p className="text-base text-stone-600 leading-[1.65]">
+                Ya tienes una sesión de actividades para esta lectura. Puedes seguir
+                donde la dejaste.
               </p>
+              <Link
+                href={`/devocionales/sesion/${sesionEstaLectura.id}`}
+                className={btnDevocionalPrimario}
+              >
+                Continuar sesión →
+              </Link>
             </div>
-
-            <button
-              type="button"
-              onClick={iniciarSesion}
-              disabled={submitting}
-              className={btnDevocionalPrimario}
-            >
-              {submitting ? "Abriendo…" : "Abrir sesión de actividades"}
-            </button>
-          </section>
-        )}
+          ) : (
+            <section className="rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 shadow-[0_2px_24px_rgba(28,25,23,0.06)] space-y-5">
+              <div>
+                <h2 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
+                  Actividades
+                </h2>
+                <p className="text-base text-stone-600 mt-2 leading-[1.65]">
+                  Abre la sesión para responder las preguntas y marcar tu avance.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={iniciarSesion}
+                disabled={submitting}
+                className={btnDevocionalPrimario}
+              >
+                {submitting ? "Abriendo…" : "Abrir sesión de actividades"}
+              </button>
+            </section>
+          )
+        ) : null}
       </div>
     </div>
   );
